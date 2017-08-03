@@ -1,4 +1,6 @@
 # core
+
+[![Greenkeeper badge](https://badges.greenkeeper.io/elder-orm/core.svg)](https://greenkeeper.io/)
 ORM core
 
 [![Build Status](https://travis-ci.org/elder-orm/core.svg?branch=master)](https://travis-ci.org/elder-orm/core)
