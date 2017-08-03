@@ -1,0 +1,32 @@
+{
+  "name": "elder-core",
+  "version": "0.0.0-development",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "repository": "git@github.com:elder-orm/core.git",
+  "author": "Richard Walker <digitalsadhu@gmail.com>",
+  "license": "MIT",
+  "scripts": {
+    "prepublish": "npm run build",
+    "commit": "git-cz",
+    "build": "tsc",
+    "semantic-release": "semantic-release pre && npm publish && semantic-release post"
+  },
+  "devDependencies": {
+    "@types/node": "^8.0.19",
+    "commitizen": "^2.9.6",
+    "cz-conventional-changelog": "^2.0.0",
+    "jest": "^20.0.4",
+    "semantic-release": "^6.3.6",
+    "typescript": "^2.4.2"
+  },
+  "dependencies": {
+    "knex": "^0.13.0",
+    "pg": "^7.0.2"
+  },
+  "config": {
+    "commitizen": {
+      "path": "./node_modules/cz-conventional-changelog"
+    }
+  }
+}
