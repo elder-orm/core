@@ -8,6 +8,7 @@
   "license": "MIT",
   "scripts": {
     "prepublish": "npm run build",
+    "precommit": "lint-staged",
     "commit": "git-cz",
     "build": "tsc",
     "semantic-release": "semantic-release pre && npm publish && semantic-release post"
@@ -16,7 +17,10 @@
     "@types/node": "^8.0.19",
     "commitizen": "^2.9.6",
     "cz-conventional-changelog": "^2.0.0",
+    "husky": "^0.14.3",
     "jest": "^20.0.4",
+    "lint-staged": "^4.0.2",
+    "prettier-standard": "^6.0.0",
     "semantic-release": "^6.3.6",
     "typescript": "^2.4.2"
   },
@@ -27,6 +31,14 @@
   "config": {
     "commitizen": {
       "path": "./node_modules/cz-conventional-changelog"
+    }
+  },
+  "lint-staged": {
+    "linters": {
+      "src/**/*.ts": [
+        "prettier-standard",
+        "git add"
+      ]
     }
   }
 }
