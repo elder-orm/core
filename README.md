@@ -96,17 +96,17 @@ to define additional adapters, more about that in the adapters section.
 
 In the index file we need to tie everything we have laid out so far together.
 
-First we import the `Orm` module from `elder-core`, then our config file.
+First we import the `Elder` module from `elder-core`, then our config file.
 
 Next we import each type we have defined in our type folder (none so far, we'll get to that)
 and each model file we have defined in our model folder. (Coming up in the next section).
 
-Finally, we create and export a new instance of `Orm` passing it all the things we
+Finally, we create and export a new instance of `Elder` passing it all the things we
 have imported.
 
 Example:
 ```js
-import Orm from 'elder-core'
+import Elder from 'elder-core'
 import config from './config'
 
 /*
@@ -120,7 +120,7 @@ import config from './config'
   etc
 */
 
-export default Orm.create({
+export default Elder.create({
   config,
   types: {
     /*
@@ -229,13 +229,13 @@ and `cat-age` type.
 Example
 Example:
 ```js
-import Orm from 'elder-core'
+import Elder from 'elder-core'
 import config from './config'
 
 import CatAgeType from './types/cat-age'
 import Cat from './models/cat'
 
-export default Orm.create({
+export default Elder.create({
   config,
   types: {
     'cat-age': CatAgeType
