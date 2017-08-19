@@ -12,23 +12,32 @@
     "precommit": "lint-staged",
     "commit": "git-cz",
     "build": "tsc",
-    "semantic-release": "semantic-release pre && npm publish && semantic-release post"
+    "semantic-release": "semantic-release pre && npm publish && semantic-release post",
+    "docs": "typedoc --out ./doc/ src",
+    "docs:server": "npm run docs && http-server -p 8085 ./docs/",
+    "prettier": "prettier --no-semi --single-quote --parser 'typescript' --write \"**/*.ts\""
   },
   "devDependencies": {
+    "@types/inflection": "^1.5.28",
     "@types/jest": "^20.0.6",
+    "@types/knex": "^0.0.57",
     "@types/node": "^8.0.19",
     "commitizen": "^2.9.6",
     "cz-conventional-changelog": "^2.0.0",
+    "http-server": "^0.10.0",
     "husky": "^0.14.3",
     "jest": "^20.0.4",
     "lint-staged": "^4.0.2",
-    "prettier-standard": "^6.0.0",
+    "prettier": "^1.5.3",
     "semantic-release": "^7.0.1",
+    "standard": "^10.0.3",
+    "typedoc": "^0.8.0",
     "typescript": "^2.4.2"
   },
   "dependencies": {
+    "inflection": "^1.12.0",
     "knex": "^0.13.0",
-    "pg": "^7.0.2"
+    "pg": "^7.1.2"
   },
   "config": {
     "commitizen": {
@@ -38,7 +47,8 @@
   "lint-staged": {
     "linters": {
       "src/**/*.ts": [
-        "prettier-standard",
+        "npm run prettier",
+        "npm run docs",
         "git add"
       ]
     }
