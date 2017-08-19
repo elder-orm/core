@@ -48,6 +48,7 @@ export type relationship = {
 }
 
 export type modelMeta = {
+  attributeDefinition: { [attrName: string]: string }
   attributes: { [attrName: string]: Type }
   relationships: { [relName: string]: relationship }
 }
@@ -95,6 +96,7 @@ export default class Model extends Base {
   static adapter: Adapter = Adapter.create()
   static serializers: Serializers
   static meta: modelMeta = {
+    attributeDefinition: {},
     attributes: {},
     relationships: {}
   }
@@ -102,20 +104,20 @@ export default class Model extends Base {
   static idField: string = 'id'
 
   static get plural(): string {
-    const nameWithoutModel = this.name.replace('Model', '')
+    const nameWithoutModel = this.name.replace('Model', '').toLowerCase()
     const nameUnderscored = underscore(nameWithoutModel)
     const nameDasherized = dasherize(nameUnderscored)
     return pluralize(nameDasherized)
   }
 
   static get tableName(): string {
-    const nameWithoutModel = this.name.replace('Model', '')
+    const nameWithoutModel = this.name.replace('Model', '').toLowerCase()
     const nameUnderscored = underscore(nameWithoutModel)
     return singularize(nameUnderscored)
   }
 
   static get modelName(): string {
-    const nameWithoutModel = this.name.replace('Model', '')
+    const nameWithoutModel = this.name.replace('Model', '').toLowerCase()
     const nameUnderscored = underscore(nameWithoutModel)
     const nameDasherized = dasherize(nameUnderscored)
     return singularize(nameDasherized)

@@ -2,9 +2,22 @@ import StringType from './types/string'
 import Elder, { Model, type } from './'
 
 class Cat extends Model {
-  @type('string') name: string
-  @type('string') color: string
+  @type('name') name: string
+  @type('cat-color') color: string
   @type('string') species: string
+}
+
+class CatName extends StringType {
+  retrieve(value: string): string {
+    console.log('Called from inside CatName')
+    return value
+  }
+}
+class CatColor extends StringType {
+  retrieve(value: string): string {
+    console.log('Called from inside CatColor')
+    return value
+  }
 }
 
 const orm = Elder.create({
@@ -17,6 +30,10 @@ const orm = Elder.create({
   },
   models: {
     cat: Cat
+  },
+  types: {
+    'cat:name': CatName,
+    'cat-color': CatColor
   }
 })
 
