@@ -12,6 +12,7 @@
     "precommit": "lint-staged",
     "commit": "git-cz",
     "build": "tsc",
+    "build:dev": "tsc --watch",
     "semantic-release": "semantic-release pre && npm publish && semantic-release post",
     "docs": "typedoc --out ./doc/ src",
     "docs:server": "npm run docs && http-server -p 8085 ./docs/",
@@ -46,23 +47,14 @@
   },
   "lint-staged": {
     "linters": {
-      "src/**/*.ts": [
-        "npm run prettier",
-        "npm run docs",
-        "git add"
-      ]
+      "src/**/*.ts": ["npm run prettier", "npm run docs", "git add"]
     }
   },
   "jest": {
-    "moduleFileExtensions": [
-      "ts",
-      "js"
-    ],
+    "moduleFileExtensions": ["ts", "js"],
     "transform": {
       "^.+\\.ts$": "<rootDir>/preprocessor.js"
     },
-    "testMatch": [
-      "**/tests/*.test.ts"
-    ]
+    "testMatch": ["**/tests/*.test.ts"]
   }
 }
