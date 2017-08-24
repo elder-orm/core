@@ -7,7 +7,7 @@ import Elder, {
   Collection
 } from '../../src'
 
-const config = { adapters: { default: { database: 'ash' } } }
+import config from '../config'
 
 describe('Elder', () => {
   test('model setup', async () => {
@@ -21,7 +21,7 @@ describe('Elder', () => {
     const cats = await CatModel.all()
     expect(cats).toBeInstanceOf(Collection)
     expect(cats[0]).toBeInstanceOf(CatModel)
-    expect(cats[0].name).toBe('fluffy')
+    expect(cats[0].name).toBe('Fluffy')
     return orm.destroy()
   })
 
@@ -36,7 +36,7 @@ describe('Elder', () => {
       types: { 'cat-name': CatName }
     })
     const cats = await CatModel.all()
-    expect(cats[0].name).toBe('fluffy')
+    expect(cats[0].name).toBe('Fluffy')
     return orm.destroy()
   })
 
@@ -51,7 +51,7 @@ describe('Elder', () => {
       types: { 'cat:name': CatName }
     })
     const cats = await CatModel.all()
-    expect(cats[0].name).toBe('fluffy')
+    expect(cats[0].name).toBe('Fluffy')
     return orm.destroy()
   })
 
@@ -64,16 +64,13 @@ describe('Elder', () => {
         // noop
       }
     }
-    const conf = Object.assign({}, config, {
-      adapters: { cat: { database: 'ash' } }
-    })
     const orm = Elder.create({
-      config: conf,
+      config: config,
       models: { cat: CatModel },
       adapters: { default: FakeAdapter, cat: PostgresAdapter }
     })
     const cats = await CatModel.all()
-    expect(cats[0].name).toBe('fluffy')
+    expect(cats[0].name).toBe('Fluffy')
     return orm.destroy()
   })
 })

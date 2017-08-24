@@ -1,5 +1,5 @@
 import { Type } from '../../../../../src'
 
-export default class SpeciesType extends Type {
+export default class BreedType extends Type {
   validate() {}
 }
