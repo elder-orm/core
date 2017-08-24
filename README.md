@@ -271,12 +271,7 @@ Example
 ```js
 // my-project/index.ts
 import orm from './orm'
+const Cat = orm.models.cat
 
-/*
-  orm.findAll('cat').then(...)
-  orm.findRecord('cat', 1).then(...)
-  orm.createRecord('cat', { name: 'Astrid Pono', age: 19 }).then(...)
-  orm.updateRecord('cat', 1, { age: 20 }).then(...)
-  orm.deleteRecord('cat', 1).then(...)
-*/
+/* Cat.all().then(...) */
 ```
