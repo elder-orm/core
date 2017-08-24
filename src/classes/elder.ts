@@ -1,4 +1,4 @@
-import Model from './model'
+import Model, { serializers } from './model'
 import { SerializableArray } from './util'
 import Base from './base'
 import Type from './type'
@@ -37,37 +37,68 @@ export type elderConfig = {
   types?: typeStore
   models: modelStore
   adapters?: {
+    default: typeof Adapter
     [name: string]: typeof Adapter
   }
   serializers?: {
+    default: typeof Serializer
     [name: string]: typeof Serializer
   }
 }
 
+export type adapters = {
+  default: Adapter
+  [name: string]: Adapter
+}
+
+function setupModels(
+  models: modelStore,
+  types: typeStore,
+  adapterInstances: adapters,
+  serializerInstances: serializers
+) {
+  Object.keys(models).forEach(modelRef => {
+    const Model = models[modelRef]
+
+    Model.adapter = adapterInstances.default
+    for (let [key, value] of Object.entries(adapterInstances)) {
+      if (key === 'default') continue
+      if (key === Model.modelName) {
+        Model.adapter = value
+      }
+    }
+
+    Model.serializers = serializerInstances
+
+    Object.keys(Model.meta.attributeDefinition).forEach(attr => {
+      let typeName = Model.meta.attributeDefinition[attr]
+      if (types[`${Model.modelName}:${typeName}`]) {
+        typeName = `${Model.modelName}:${typeName}`
+      }
+      const Type = types[typeName]
+      const instance = Type.create()
+      Model.meta.attributes[attr] = instance
+    })
+  })
+}
+
 export default class Elder extends Base {
   serializers: { [name: string]: typeof Serializer }
-  adapters: { [name: string]: typeof Adapter }
+  serializerInstances: serializers
+  adapters: {
+    default: typeof Adapter
+    [name: string]: typeof Adapter
+  }
+  adapterInstances: {
+    default: Adapter
+    [name: string]: Adapter
+  }
   models: { [name: string]: typeof Model }
   types: { [name: string]: typeof Type }
   config: config
 
   static create(config: elderConfig) {
     return new this(config)
-  }
-
-  setupModels(models: modelStore, types: typeStore) {
-    Object.keys(models).forEach(modelRef => {
-      const Model = models[modelRef]
-      Object.keys(Model.meta.attributeDefinition).forEach(attr => {
-        let typeName = Model.meta.attributeDefinition[attr]
-        if (types[`${Model.modelName}:${typeName}`]) {
-          typeName = `${Model.modelName}:${typeName}`
-        }
-        const Type = types[typeName]
-        const instance = Type.create()
-        Model.meta.attributes[attr] = instance
-      })
-    })
   }
 
   constructor(config: elderConfig) {
@@ -81,6 +112,15 @@ export default class Elder extends Base {
       config.serializers
     )
 
+    this.serializerInstances = {
+      default: this.serializers.default.create()
+    }
+
+    for (let [key, value] of Object.entries(this.serializers)) {
+      if (key === 'default') continue
+      this.serializerInstances[key] = value.create()
+    }
+
     this.adapters = Object.assign(
       {},
       {
@@ -88,6 +128,15 @@ export default class Elder extends Base {
       },
       config.adapters
     )
+
+    this.adapterInstances = {
+      default: this.adapters.default.create(config.config.adapters.default)
+    }
+
+    for (let [key, value] of Object.entries(this.adapters)) {
+      if (key === 'default') continue
+      this.adapterInstances[key] = value.create(config.config.adapters[key])
+    }
 
     this.types = Object.assign(
       {},
@@ -104,6 +153,19 @@ export default class Elder extends Base {
 
     this.config = config.config
 
-    this.setupModels(this.models, this.types)
+    setupModels(
+      this.models,
+      this.types,
+      this.adapterInstances,
+      this.serializerInstances
+    )
+  }
+
+  destroy(): any {
+    return Promise.all(
+      Object.entries(this.adapterInstances).map(([key, value]) => {
+        return this.adapterInstances[key].destroy()
+      })
+    )
   }
 }

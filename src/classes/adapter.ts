@@ -6,15 +6,15 @@ import Model from './model'
 
 const first = (arr: any[]): any => arr[0] || null
 
-const knex = Knex({
-  client: 'pg',
-  connection: {
-    host: '127.0.0.1',
-    user: 'digitalsadhu',
-    password: '',
-    database: 'ash'
-  }
-})
+export type databaseConfig =
+  | string
+  | {
+      database: string
+      host?: string
+      user?: string
+      password?: string
+      port?: number
+    }
 
 export type optsMultiple = {
   include?: string | string[]
@@ -36,9 +36,19 @@ export type where =
   | Array<any>
 
 export default class Adapter extends Base {
+  knex: Knex
+
+  constructor(config: databaseConfig) {
+    super()
+    this.knex = Knex({
+      client: 'pg',
+      connection: config
+    })
+  }
+
   async checkConnection() {
     try {
-      await knex.raw('SELECT 1 = 1;')
+      await this.knex.raw('SELECT 1 = 1;')
     } catch (e) {
       throw new Error(`Adapter: database connection failed?`)
     }
@@ -167,32 +177,37 @@ export default class Adapter extends Base {
   // }
 
   one(Ctor: typeof Model, where: where, options?: optsSingle) {
-    return knex.table(Ctor.tableName).where(where).first()
+    return this.knex.table(Ctor.tableName).where(where).first()
   }
+
   oneById(Ctor: typeof Model, id: number, options?: optsSingle) {
-    return knex.table(Ctor.tableName).where(Ctor.idField, id).first()
+    return this.knex.table(Ctor.tableName).where(Ctor.idField, id).first()
   }
+
   async oneBySql(
     Ctor: typeof Model,
     sql: string,
     params?: string[] | number[],
     options?: optsSingle
   ) {
-    const result = await knex.raw(sql, params || [])
+    const result = await this.knex.raw(sql, params || [])
     return first(result.rows)
   }
+
   some(Ctor: typeof Model, where: where, options?: optsMultiple) {
-    return knex.table(Ctor.tableName).where(where)
+    return this.knex.table(Ctor.tableName).where(where)
   }
+
   async someBySql(
     Ctor: typeof Model,
     sql: string,
     params?: string[] | number[],
     options?: optsMultiple
   ) {
-    const result = await knex.raw(sql, params || [])
+    const result = await this.knex.raw(sql, params || [])
     return result.rows
   }
+
   async all(Ctor: typeof Model, options?: optsMultiple) {
     await this.checkConnection()
     options = options || {}
@@ -203,11 +218,19 @@ export default class Adapter extends Base {
     } else {
       columns = this.columnsForModel(Ctor)
     }
-    let query = knex.table(Ctor.tableName)
+    let query = this.knex.table(Ctor.tableName)
     query = query.column(columns)
     query = this.paginate(query, options)
     query = this.sort(query, options.sort)
 
-    return query
+    const q = await query
+    await this.knex.destroy
+    return q
+  }
+
+  destroy(): Promise<void> {
+    return new Promise(resolve => {
+      this.knex.destroy().then(() => resolve())
+    })
   }
 }

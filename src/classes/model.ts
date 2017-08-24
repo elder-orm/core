@@ -2,21 +2,16 @@ import Adapter from './adapter'
 import Serializer from './serializer'
 import Type from './type'
 import Base from './base'
+import Collection from './collection'
 import { pluralize, singularize, dasherize, underscore } from 'inflection'
 
-export type Serializers = {
+export type serializers = {
   default: Serializer
   [propName: string]: Serializer
 }
 
 export interface ModelCtor {
   name: string
-}
-
-export class Collection extends Array {
-  serialize() {
-    return this
-  }
 }
 
 export type optsMultiple = {
@@ -75,9 +70,10 @@ export default class Model extends Base {
       that[key] = type.retrieve(value)
     }
 
-    return new Proxy(this, {
+    const proxy = new Proxy(this, {
       get(target, name): any {
-        if (!Ctor.meta.attributes[name]) return that[name]
+        if (!Reflect.ownKeys(Ctor.meta.attributes).includes(name))
+          return that[name]
         const type = Ctor.meta.attributes[name]
         return type.access(that[name])
       },
@@ -93,8 +89,8 @@ export default class Model extends Base {
     })
   }
 
-  static adapter: Adapter = Adapter.create()
-  static serializers: Serializers
+  static adapter: Adapter
+  static serializers: serializers
   static meta: modelMeta = {
     attributeDefinition: {},
     attributes: {},
@@ -128,7 +124,7 @@ export default class Model extends Base {
     return Ctor.adapter
   }
 
-  get serializers(): Serializers {
+  get serializers(): serializers {
     const Ctor = <typeof Model>this.constructor
     return Ctor.serializers
   }

@@ -55,6 +55,6 @@
     "transform": {
       "^.+\\.ts$": "<rootDir>/preprocessor.js"
     },
-    "testMatch": ["**/tests/*.test.ts"]
+    "testMatch": ["**/tests/**/*.test.ts"]
   }
 }

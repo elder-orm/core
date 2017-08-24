@@ -1,4 +1,5 @@
 import Model from './model'
+import Base from './base'
 
 export interface ISerializer {
   serialize(model: typeof Model, payload: any, options?: any): any
@@ -7,11 +8,11 @@ export interface ISerializer {
 /**
  *
  */
-export default class Serializer implements ISerializer {
+export default class Serializer extends Base implements ISerializer {
   /**
    *
    */
   serialize(model: typeof Model, payload: any): any {
-    return payload
+    return JSON.parse(JSON.stringify(payload))
   }
 }
