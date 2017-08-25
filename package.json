@@ -16,7 +16,9 @@
     "semantic-release": "semantic-release pre && npm publish && semantic-release post",
     "docs": "typedoc --out ./doc/ src",
     "docs:server": "npm run docs && http-server -p 8085 ./docs/",
-    "prettier": "prettier --no-semi --single-quote --parser 'typescript' --write \"**/*.ts\""
+    "prettier": "prettier --no-semi --single-quote --parser 'typescript' --write \"**/*.ts\"",
+    "migrate": "knex migrate:latest",
+    "seed": "knex seed:run"
   },
   "devDependencies": {
     "@types/inflection": "^1.5.28",

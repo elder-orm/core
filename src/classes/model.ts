@@ -89,6 +89,46 @@ export default class Model extends Base {
     })
   }
 
+  static attachAdapters(adapters: {
+    default: Adapter
+    [name: string]: Adapter
+  }) {
+    this.adapter = adapters.default
+    for (let [key, value] of Object.entries(adapters)) {
+      if (key === 'default') continue
+      if (key === this.modelName) {
+        this.adapter = value
+      }
+    }
+  }
+
+  static attachSerializers(serializers: {
+    default: Serializer
+    [name: string]: Serializer
+  }) {
+    this.serializers = serializers
+  }
+
+  static attachTypes(types: { [name: string]: Type }) {
+    Object.keys(this.meta.attributeDefinition).forEach(attr => {
+      let typeName = this.meta.attributeDefinition[attr]
+      if (types[`${this.modelName}:${typeName}`]) {
+        typeName = `${this.modelName}:${typeName}`
+      }
+      Model.meta.attributes[attr] = types[typeName]
+    })
+  }
+
+  static setup(
+    types: { [name: string]: Type },
+    adapters: { default: Adapter; [name: string]: Adapter },
+    serializers: { default: Serializer; [name: string]: Serializer }
+  ) {
+    this.attachAdapters(adapters)
+    this.attachSerializers(serializers)
+    this.attachTypes(types)
+  }
+
   static adapter: Adapter
   static serializers: serializers
   static meta: modelMeta = {

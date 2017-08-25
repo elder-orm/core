@@ -12,7 +12,7 @@ import Cat from './models/cat/model'
 import CatAdapter from './models/cat/adapter'
 import CatColorType from './models/cat/types/color'
 import CatNameType from './models/cat/types/name'
-import CatSpeciesType from './models/cat/types/species'
+import CatSpeciesType from './models/cat/types/breed'
 
 export default Elder.create({
   config,
@@ -24,7 +24,7 @@ export default Elder.create({
     age: AgeType, // this general type will be available to any model
     'cat:name': CatNameType, // these scoped types will only be available to the cat model
     'cat:color': CatColorType,
-    'cat:species': CatSpeciesType
+    'cat:breed': CatSpeciesType
   },
   adapters: {
     // this section can be omitted in which case a postgres adapter will be used
