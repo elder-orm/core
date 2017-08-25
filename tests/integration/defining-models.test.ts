@@ -9,23 +9,24 @@ import Elder, {
 
 import config from '../config'
 
-describe('Elder', () => {
-  test('model setup', async () => {
-    class CatModel extends Model {
+describe('Defining models', () => {
+  test('Creating a simple model', async () => {
+    class Cat extends Model {
       @type('string') name: string
     }
     const orm = Elder.create({
       config,
-      models: { cat: CatModel }
+      models: { cat: Cat }
     })
-    const cats = await CatModel.all()
+    const cats = await Cat.all()
     expect(cats).toBeInstanceOf(Collection)
-    expect(cats[0]).toBeInstanceOf(CatModel)
+    expect(cats.length).toBe(2)
+    expect(cats[0]).toBeInstanceOf(Cat)
     expect(cats[0].name).toBe('Fluffy')
     return orm.destroy()
   })
 
-  test('model with custom type', async () => {
+  test('Creating a model with a custom type', async () => {
     class CatModel extends Model {
       @type('cat-name') name: string
     }
@@ -40,37 +41,44 @@ describe('Elder', () => {
     return orm.destroy()
   })
 
-  test('model with custom scoped type', async () => {
-    class CatModel extends Model {
+  test('Creating a model with a custom type thats scoped to the model', async () => {
+    class Cat extends Model {
       @type('name') name: string
     }
     class CatName extends StringType {}
     const orm = Elder.create({
       config,
-      models: { cat: CatModel },
+      models: { cat: Cat },
       types: { 'cat:name': CatName }
     })
-    const cats = await CatModel.all()
+    const cats = await Cat.all()
     expect(cats[0].name).toBe('Fluffy')
     return orm.destroy()
   })
 
-  test('model with custom adapter', async () => {
-    class CatModel extends Model {
+  test('Creating a model with a custom adapter', async () => {
+    class Cat extends Model {
       @type('string') name: string
     }
-    class FakeAdapter extends Adapter {
-      all(): any {
-        // noop
+    class Dog extends Model {
+      @type('string') name: string
+    }
+    class DefaultAdapter extends Adapter {
+      all(): Promise<any> {
+        return Promise.resolve([{ name: 'Fido' }])
       }
     }
     const orm = Elder.create({
       config: config,
-      models: { cat: CatModel },
-      adapters: { default: FakeAdapter, cat: PostgresAdapter }
+      models: { cat: Cat, dog: Dog },
+      adapters: { default: DefaultAdapter, cat: PostgresAdapter }
     })
-    const cats = await CatModel.all()
+
+    const cats = await Cat.all()
+    const dogs = await Dog.all()
+
     expect(cats[0].name).toBe('Fluffy')
+    expect(dogs.serialize()).toEqual([{ name: 'Fido' }])
     return orm.destroy()
   })
 })
