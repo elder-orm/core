@@ -70,10 +70,11 @@ export default class Model extends Base {
       that[key] = type.retrieve(value)
     }
 
-    const proxy = new Proxy(this, {
+    return new Proxy(this, {
       get(target, name): any {
         if (!Reflect.ownKeys(Ctor.meta.attributes).includes(name))
           return that[name]
+
         const type = Ctor.meta.attributes[name]
         return type.access(that[name])
       },
