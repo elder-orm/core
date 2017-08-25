@@ -35,6 +35,28 @@ export type where =
     }
   | Array<any>
 
+function sanitize(
+  Ctor: typeof Model,
+  props: { [key: string]: any }
+): { [key: string]: any } {
+  const validPropKeys: string[] = Object.keys(props).filter(prop =>
+    Reflect.ownKeys(Model.meta.attributes).includes(prop)
+  )
+  const validProps: { [key: string]: any } = {}
+  for (let prop of validPropKeys) {
+    validProps[prop] = props[prop]
+  }
+  return validProps
+}
+
+export type pojo = {
+  [key: string]: any
+}
+
+function clone(obj: pojo): pojo {
+  return JSON.parse(JSON.stringify(obj))
+}
+
 export default class Adapter extends Base {
   knex: Knex
 
@@ -226,6 +248,27 @@ export default class Adapter extends Base {
     const q = await query
     await this.knex.destroy
     return q
+  }
+
+  async createRecord(Ctor: typeof Model, props: pojo): Promise<pojo> {
+    const result = await this.knex(Ctor.tableName)
+      .insert(sanitize(Ctor, props))
+      .returning(Object.keys(Ctor.meta.attributes))
+    return clone(result)
+  }
+
+  async updateRecord(
+    Ctor: typeof Model,
+    key: string | number,
+    props: { [name: string]: any }
+  ): Promise<{ [name: string]: any }> {
+    const idField: string = Ctor.idField
+    const result = await this.knex(Ctor.tableName)
+      .update(sanitize(Ctor, props))
+      .where(idField, key)
+      .returning(Object.keys(Ctor.meta.attributes))
+
+    return clone(result)
   }
 
   destroy(): Promise<void> {

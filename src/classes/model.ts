@@ -125,11 +125,14 @@ export default class Model extends Base {
     adapters: { default: Adapter; [name: string]: Adapter },
     serializers: { default: Serializer; [name: string]: Serializer }
   ) {
+    if (!this.meta.attributeDefinition[this.idField])
+      this.meta.attributeDefinition[this.idField] = 'number'
     this.attachAdapters(adapters)
     this.attachSerializers(serializers)
     this.attachTypes(types)
   }
 
+  static idField: string = 'id'
   static adapter: Adapter
   static serializers: serializers
   static meta: modelMeta = {
@@ -137,8 +140,6 @@ export default class Model extends Base {
     attributes: {},
     relationships: {}
   }
-
-  static idField: string = 'id'
 
   static get plural(): string {
     const nameWithoutModel = this.name.replace('Model', '').toLowerCase()
