@@ -7,7 +7,22 @@ import Elder, {
   Collection
 } from '../../src'
 
+import * as Knex from 'knex'
+import * as knexConfig from '../../knexfile'
+
 import config from '../config'
+
+const knex = Knex(knexConfig.development)
+
+beforeEach(async () => {
+  await knex('cat').truncate()
+  await knex.migrate.latest(knexConfig.development.migrations)
+  return knex.seed.run(knexConfig.development.migrations)
+})
+
+afterAll(() => {
+  knex.destroy()
+})
 
 describe('Defining models', () => {
   test('Creating a simple model', async () => {
