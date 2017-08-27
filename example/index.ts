@@ -17,4 +17,4 @@ async function main() {
   )
 }
 
-main().then(() => orm.destroy())
+main().then(() => orm.destroy()).catch(err => console.log(err))
