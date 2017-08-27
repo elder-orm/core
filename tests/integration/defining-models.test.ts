@@ -8,16 +8,16 @@ import Elder, {
 } from '../../src'
 
 import * as Knex from 'knex'
-import * as knexConfig from '../../knexfile'
+import { development } from '../../knexfile'
 
 import config from '../config'
 
-const knex = Knex(knexConfig.development)
+const knex = Knex(development)
 
 beforeEach(async () => {
   await knex('cat').truncate()
-  await knex.migrate.latest(knexConfig.development.migrations)
-  return knex.seed.run(knexConfig.development.migrations)
+  await knex.migrate.latest(development.migrations)
+  return knex.seed.run(development.migrations)
 })
 
 afterAll(() => {
