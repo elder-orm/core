@@ -3,18 +3,17 @@ import { underscore } from 'inflection'
 import { get } from 'lodash'
 import Base from './base'
 import Model from './model'
+import DatabaseConnectionError from './errors/connection-error'
 
 const first = (arr: any[]): any => arr[0] || null
 
-export type databaseConfig =
-  | string
-  | {
-      database: string
-      host?: string
-      user?: string
-      password?: string
-      port?: number
-    }
+export type databaseConfig = {
+  database: string
+  host?: string
+  user?: string
+  password?: string
+  port?: number
+}
 
 export type optsMultiple = {
   include?: string | string[]
@@ -59,9 +58,11 @@ function clone(obj: pojo): pojo {
 
 export default class Adapter extends Base {
   knex: Knex
+  config: databaseConfig
 
   constructor(config: databaseConfig) {
     super()
+    this.config = config
     this.knex = Knex({
       client: 'pg',
       connection: config
@@ -72,7 +73,15 @@ export default class Adapter extends Base {
     try {
       await this.knex.raw('SELECT 1 = 1;')
     } catch (e) {
-      throw new Error(`Adapter: database connection failed?`)
+      const conf = clone(this.config)
+      if (conf.password) {
+        conf.password = '********'
+      }
+      throw new DatabaseConnectionError(
+        `Unable to connect to database '${this.config
+          .database}' using adapter '${this.constructor
+          .name}' and config '${JSON.stringify(conf)}'`
+      )
     }
   }
 
@@ -269,6 +278,11 @@ export default class Adapter extends Base {
       .returning(Object.keys(Ctor.meta.attributes))
 
     return clone(result)
+  }
+
+  async deleteRecord(Ctor: typeof Model, key: string | number): Promise<void> {
+    const idField: string = Ctor.idField
+    await this.knex(Ctor.tableName).delete().where(idField, key)
   }
 
   destroy(): Promise<void> {
