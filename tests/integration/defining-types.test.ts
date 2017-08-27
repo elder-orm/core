@@ -7,7 +7,21 @@ import Elder, {
   Collection
 } from '../../src'
 
+import * as Knex from 'knex'
+import { development } from '../../knexfile'
 import config from '../config'
+
+const knex = Knex(development)
+
+beforeEach(async () => {
+  await knex('cat').truncate()
+  await knex.migrate.latest(development.migrations)
+  return knex.seed.run(development.migrations)
+})
+
+afterAll(() => {
+  knex.destroy()
+})
 
 describe('Defining types', () => {
   test('Extending the StringType to create a custom type', async () => {
