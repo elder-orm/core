@@ -1,4 +1,4 @@
-import Elder, { Serializer, Model, type } from '../../src'
+import Elder, { Serializer, Model, type } from '../../../src'
 const config = { adapters: { default: { database: 'ash' } } }
 
 describe('Serializers', () => {

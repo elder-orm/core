@@ -1,5 +1,5 @@
-import type from '../../src/decorators/type'
-import { Model } from '../../src'
+import type from '../../../src/decorators/type'
+import { Model } from '../../../src'
 
 describe('@type() decorator', () => {
   test('basic decorators', () => {

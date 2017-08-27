@@ -1,4 +1,4 @@
-import { Base } from '../../src'
+import { Base } from '../../../src'
 
 describe('extending Base', () => {
   test('create() method', () => {
