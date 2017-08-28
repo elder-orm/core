@@ -70,10 +70,11 @@ export default class Model extends Base {
       that[key] = type.retrieve(value)
     }
 
-    const proxy = new Proxy(this, {
+    return new Proxy(this, {
       get(target, name): any {
         if (!Reflect.ownKeys(Ctor.meta.attributes).includes(name))
           return that[name]
+
         const type = Ctor.meta.attributes[name]
         return type.access(that[name])
       },
@@ -124,11 +125,14 @@ export default class Model extends Base {
     adapters: { default: Adapter; [name: string]: Adapter },
     serializers: { default: Serializer; [name: string]: Serializer }
   ) {
+    if (!this.meta.attributeDefinition[this.idField])
+      this.meta.attributeDefinition[this.idField] = 'number'
     this.attachAdapters(adapters)
     this.attachSerializers(serializers)
     this.attachTypes(types)
   }
 
+  static idField: string = 'id'
   static adapter: Adapter
   static serializers: serializers
   static meta: modelMeta = {
@@ -136,8 +140,6 @@ export default class Model extends Base {
     attributes: {},
     relationships: {}
   }
-
-  static idField: string = 'id'
 
   static get plural(): string {
     const nameWithoutModel = this.name.replace('Model', '').toLowerCase()

@@ -12,8 +12,8 @@ import Type from '../classes/type'
  * ```
  */
 export default class StringType extends Type {
-  modify(value: string) {
-    return value
+  modify(value: string | number) {
+    return String(value)
   }
 
   store(value: string): string {
