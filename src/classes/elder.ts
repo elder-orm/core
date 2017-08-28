@@ -1,5 +1,4 @@
 import Model, { serializers } from './model'
-import { SerializableArray } from './util'
 import Base from './base'
 import Type from './type'
 import { PostgresAdapter } from '../adapters'
@@ -7,15 +6,13 @@ import Adapter from './adapter'
 import Serializer from './serializer'
 import { StringType, NumberType, DateType, BooleanType } from '../types'
 
-export type databaseConfig =
-  | string
-  | {
-      database: string
-      host?: string
-      user?: string
-      password?: string
-      port?: number
-    }
+export type databaseConfig = {
+  database: string
+  host?: string
+  user?: string
+  password?: string
+  port?: number
+}
 
 export type config = {
   adapters: {
@@ -201,13 +198,6 @@ export default class Elder extends Base {
    */
   config: config
 
-  /**
-   * Alternative to using `new`
-   */
-  static create(options: options) {
-    return new this(options)
-  }
-
   constructor(options: options) {
     super()
 
@@ -232,6 +222,13 @@ export default class Elder extends Base {
     // serializers, adapters and types
     this.models = options.models || {}
     setupModels(this.models, this.types, this.adapters, this.serializers)
+  }
+
+  /**
+   * Alternative to using `new`
+   */
+  static create(options: options) {
+    return new this(options)
   }
 
   /**

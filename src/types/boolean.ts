@@ -27,7 +27,7 @@ export default class BooleanType extends Type {
   }
 
   retrieve(value: string | number | boolean): boolean | void {
-    if (['true', 'TRUE', 'T', 't', , '1', 1, true].includes(value)) {
+    if (['true', 'TRUE', 'T', 't', '1', 1, true].includes(value)) {
       return true
     } else if (['false', 'FALSE', 'F', 'f', '0', 0, false].includes(value)) {
       return false

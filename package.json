@@ -7,18 +7,22 @@
   "author": "Richard Walker <digitalsadhu@gmail.com>",
   "license": "MIT",
   "scripts": {
+    "pretest": "npm run lint",
     "test": "jest",
+    "test:dev": "jest --watch",
     "prepublish": "npm run build",
     "precommit": "lint-staged",
     "commit": "git-cz",
+    "prebuild": "npm run lint",
     "build": "tsc",
     "build:dev": "tsc --watch",
     "semantic-release": "semantic-release pre && npm publish && semantic-release post",
     "docs": "typedoc --out ./doc/ src",
     "docs:server": "npm run docs && http-server -p 8085 ./docs/",
-    "prettier": "prettier --no-semi --single-quote --parser 'typescript' --write \"**/*.ts\"",
+    "prettier": "prettier --no-semi --single-quote  --parser 'typescript' --write \"**/*.ts\"",
     "migrate": "knex migrate:latest",
-    "seed": "knex seed:run"
+    "seed": "knex seed:run",
+    "lint": "tslint --type-check --project tsconfig.json -c tslint.json 'src/**/*.ts'"
   },
   "devDependencies": {
     "@types/inflection": "^1.5.28",
@@ -32,7 +36,8 @@
     "lint-staged": "^4.0.2",
     "prettier": "^1.5.3",
     "semantic-release": "^7.0.1",
-    "standard": "^10.0.3",
+    "tslint": "^5.7.0",
+    "tslint-config-standard": "^6.0.1",
     "typedoc": "^0.8.0",
     "typescript": "^2.4.2"
   },
@@ -51,6 +56,7 @@
     "linters": {
       "src/**/*.ts": [
         "npm run prettier",
+        "npm run lint",
         "npm run docs",
         "git add"
       ]

@@ -1,6 +1,5 @@
 import * as Knex from 'knex'
 import { underscore } from 'inflection'
-import { get } from 'lodash'
 import Base from './base'
 import Model from './model'
 import DatabaseConnectionError from './errors/connection-error'
@@ -28,11 +27,7 @@ export type optsSingle = {
   fields?: string[]
 }
 
-export type where =
-  | {
-      [key: string]: any
-    }
-  | Array<any>
+export type where = { [key: string]: any } | Array<any>
 
 function sanitize(
   Ctor: typeof Model,
@@ -254,9 +249,7 @@ export default class Adapter extends Base {
     query = this.paginate(query, options)
     query = this.sort(query, options.sort)
 
-    const q = await query
-    await this.knex.destroy
-    return q
+    return query
   }
 
   async createRecord(Ctor: typeof Model, props: pojo): Promise<pojo> {
