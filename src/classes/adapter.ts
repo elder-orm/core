@@ -38,7 +38,7 @@ function sanitize(
   )
   const validProps: { [key: string]: any } = {}
   for (let prop of validPropKeys) {
-    validProps[prop] = props[prop]
+    validProps[underscore(prop)] = props[prop]
   }
   return validProps
 }
@@ -203,11 +203,19 @@ export default class Adapter extends Base {
   // }
 
   one(Ctor: typeof Model, where: where, options?: optsSingle) {
-    return this.knex.table(Ctor.tableName).where(where).first()
+    return this.knex
+      .table(Ctor.tableName)
+      .column(this.columnsForModel(Model))
+      .where(where)
+      .first()
   }
 
   oneById(Ctor: typeof Model, id: number, options?: optsSingle) {
-    return this.knex.table(Ctor.tableName).where(Ctor.idField, id).first()
+    return this.knex
+      .table(Ctor.tableName)
+      .column(this.columnsForModel(Model))
+      .where(Ctor.idField, id)
+      .first()
   }
 
   async oneBySql(
@@ -221,7 +229,10 @@ export default class Adapter extends Base {
   }
 
   some(Ctor: typeof Model, where: where, options?: optsMultiple) {
-    return this.knex.table(Ctor.tableName).where(where)
+    return this.knex
+      .table(Ctor.tableName)
+      .column(this.columnsForModel(Model))
+      .where(where)
   }
 
   async someBySql(
@@ -253,9 +264,10 @@ export default class Adapter extends Base {
   }
 
   async createRecord(Ctor: typeof Model, props: pojo): Promise<pojo> {
+    const data = sanitize(Ctor, props)
     const result = await this.knex(Ctor.tableName)
-      .insert(sanitize(Ctor, props))
-      .returning(Object.keys(Ctor.meta.attributes))
+      .insert(data)
+      .returning(Object.keys(data))
     return clone(result)
   }
 
