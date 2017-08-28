@@ -49,14 +49,23 @@
   },
   "lint-staged": {
     "linters": {
-      "src/**/*.ts": ["npm run prettier", "npm run docs", "git add"]
+      "src/**/*.ts": [
+        "npm run prettier",
+        "npm run docs",
+        "git add"
+      ]
     }
   },
   "jest": {
-    "moduleFileExtensions": ["ts", "js"],
+    "moduleFileExtensions": [
+      "ts",
+      "js"
+    ],
     "transform": {
       "^.+\\.ts$": "<rootDir>/preprocessor.js"
     },
-    "testMatch": ["**/tests/**/*.test.ts"]
+    "testMatch": [
+      "**/tests/**/*.test.ts"
+    ]
   }
 }
