@@ -64,4 +64,98 @@ describe('Using basic types', () => {
     expect(cat2.createdAt.toISOString()).toBe('2017-01-28T20:17:25.601Z')
     return orm.destroy()
   })
+
+  test('Accessing a BooleanType property', async () => {
+    class Cat extends Model {
+      @type('boolean') isActive: boolean
+    }
+    const orm = Elder.create({ config, models: { cat: Cat } })
+    const cat = await Cat.oneById(1)
+    expect(cat.isActive).toBe(true)
+    return orm.destroy()
+  })
+
+  test('Modifying a BooleanType property using a boolean', async () => {
+    class Cat extends Model {
+      @type('boolean') isActive: boolean
+    }
+    const orm = Elder.create({ config, models: { cat: Cat } })
+    const cat = await Cat.oneById(1)
+    cat.isActive = false
+    expect(cat.isActive).toBe(false)
+    return orm.destroy()
+  })
+
+  test('Modifying a BooleanType property using a string', async () => {
+    class Cat extends Model {
+      @type('boolean') isActive: boolean
+    }
+    const orm = Elder.create({ config, models: { cat: Cat } })
+    const cat = await Cat.oneById(1)
+    cat.isActive = 'f'
+    expect(cat.isActive).toBe(false)
+    return orm.destroy()
+  })
+
+  test('Saving a BooleanType property', async () => {
+    class Cat extends Model {
+      @type('name') name: string
+      @type('boolean') isActive: boolean
+    }
+    const orm = Elder.create({ config, models: { cat: Cat } })
+    await Cat.adapter.createRecord(Cat, {
+      name: 'The very active Mr Hollingsworth',
+      isActive: false
+    })
+    const cat = await Cat.one({ name: 'The very active Mr Hollingsworth' })
+    expect(cat.isActive).toBe(false)
+    return orm.destroy()
+  })
+
+  test('Accessing a NumberType property', async () => {
+    class Cat extends Model {
+      @type('number') age: number
+    }
+    const orm = Elder.create({ config, models: { cat: Cat } })
+    const cat = await Cat.oneById(1)
+    expect(cat.age).toBe(12)
+    return orm.destroy()
+  })
+
+  test('Modifying a NumberType property using a number', async () => {
+    class Cat extends Model {
+      @type('number') age: number
+    }
+    const orm = Elder.create({ config, models: { cat: Cat } })
+    const cat = await Cat.oneById(1)
+    cat.age = 13
+    expect(cat.age).toBe(13)
+    return orm.destroy()
+  })
+
+  test('Modifying a NumberType property using a string', async () => {
+    class Cat extends Model {
+      @type('number') age: number
+    }
+    const orm = Elder.create({ config, models: { cat: Cat } })
+    const cat = await Cat.oneById(1)
+    cat.age = '13'
+    expect(cat.age).toBe(13)
+    return orm.destroy()
+  })
+
+  test('Saving a NumberType property', async () => {
+    class Cat extends Model {
+      @type('name') name: string
+      @type('number') age: number
+    }
+    const orm = Elder.create({ config, models: { cat: Cat } })
+    await Cat.adapter.createRecord(Cat, {
+      name: 'Kitten Winters',
+      age: 1
+    })
+    const cat = await Cat.one({ name: 'Kitten Winters' })
+    expect(cat.age).toBe(1)
+    return orm.destroy()
+  })
 })
