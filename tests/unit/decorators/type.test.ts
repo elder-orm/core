@@ -16,5 +16,7 @@ describe('@type() decorator', () => {
       dat: 'date',
       bol: 'boolean'
     })
+
+    expect(Model.meta.attributeDefinition).toEqual({})
   })
 })

@@ -16,6 +16,7 @@ export default class Model extends Base {
     attributes: {},
     relationships: {}
   }
+  private static _tableName: string
 
   constructor(props: { [prop: string]: any } = {}) {
     super()
@@ -85,7 +86,7 @@ export default class Model extends Base {
       if (types[`${this.modelName}:${typeName}`]) {
         typeName = `${this.modelName}:${typeName}`
       }
-      Model.meta.attributes[attr] = types[typeName]
+      this.meta.attributes[attr] = types[typeName]
     })
   }
 
@@ -110,9 +111,14 @@ export default class Model extends Base {
   }
 
   static get tableName(): string {
+    if (this._tableName) return this._tableName
     const nameWithoutModel = this.name.replace('Model', '').toLowerCase()
     const nameUnderscored = underscore(nameWithoutModel)
     return singularize(nameUnderscored)
+  }
+
+  static set tableName(name: string) {
+    this._tableName = name
   }
 
   static get modelName(): string {

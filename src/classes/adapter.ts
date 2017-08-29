@@ -34,7 +34,7 @@ function sanitize(
   props: { [key: string]: any }
 ): { [key: string]: any } {
   const validPropKeys: string[] = Object.keys(props).filter(prop =>
-    Reflect.ownKeys(Model.meta.attributes).includes(prop)
+    Reflect.ownKeys(Ctor.meta.attributes).includes(prop)
   )
   const validProps: { [key: string]: any } = {}
   for (let prop of validPropKeys) {
@@ -121,8 +121,8 @@ export default class Adapter extends Base {
     }
 
     // create a field map from model attr name to db column name eg. {myTitle => my_title, etc}
-    const modelFields = this.fieldsForModel(Model)
-    const dbFields = this.databaseFieldsForModel(Model)
+    const modelFields = this.fieldsForModel(Ctor)
+    const dbFields = this.databaseFieldsForModel(Ctor)
     const fieldMap = modelFields.map((modelField, i) => ({
       nameForModel: modelField,
       nameForDb: dbFields[i]
@@ -205,7 +205,7 @@ export default class Adapter extends Base {
   one(Ctor: typeof Model, where: where, options?: optsSingle) {
     return this.knex
       .table(Ctor.tableName)
-      .column(this.columnsForModel(Model))
+      .column(this.columnsForModel(Ctor))
       .where(where)
       .first()
   }
@@ -213,7 +213,7 @@ export default class Adapter extends Base {
   oneById(Ctor: typeof Model, id: number, options?: optsSingle) {
     return this.knex
       .table(Ctor.tableName)
-      .column(this.columnsForModel(Model))
+      .column(this.columnsForModel(Ctor))
       .where(Ctor.idField, id)
       .first()
   }
@@ -231,7 +231,7 @@ export default class Adapter extends Base {
   some(Ctor: typeof Model, where: where, options?: optsMultiple) {
     return this.knex
       .table(Ctor.tableName)
-      .column(this.columnsForModel(Model))
+      .column(this.columnsForModel(Ctor))
       .where(where)
   }
 
@@ -268,6 +268,7 @@ export default class Adapter extends Base {
     const result = await this.knex(Ctor.tableName)
       .insert(data)
       .returning(Object.keys(data))
+
     return clone(result)
   }
 
