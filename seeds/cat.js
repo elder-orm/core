@@ -1,6 +1,6 @@
 exports.seed = (knex, Promise) => {
   // Deletes ALL existing entries
-  return knex('cat').del().then(() => {
+  return knex('cat').truncate().then(() => {
     // Inserts seed entries
     return knex('cat').insert([
       {

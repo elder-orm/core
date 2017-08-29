@@ -14,8 +14,6 @@ const adapterConfig = config.adapters.default
 const knex = Knex(development)
 
 beforeEach(async () => {
-  await knex('cat').truncate()
-  await knex.migrate.latest(development.migrations)
   return knex.seed.run(development.migrations)
 })
 
