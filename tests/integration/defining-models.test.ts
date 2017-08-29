@@ -12,14 +12,10 @@ import { development } from '../../knexfile'
 
 import config from '../config'
 
-const knex = Knex(development)
-
 beforeEach(async () => {
-  return knex.seed.run(development.migrations)
-})
-
-afterAll(() => {
-  knex.destroy()
+  const knex: Knex = Knex(development)
+  await knex.seed.run(development.migrations)
+  return knex.destroy()
 })
 
 describe('Defining models', () => {
