@@ -1,0 +1,11 @@
+{
+  "defaultSeverity": "error",
+  "extends": ["tslint-config-standard"],
+  "jsRules": {},
+  "rules": {
+    "space-before-function-paren": false,
+    "no-empty": false,
+    "await-promise": [true, "Bluebird"]
+  },
+  "rulesDirectory": []
+}

@@ -5,6 +5,9 @@ exports.up = (knex, Promise) => {
       table.string('name')
       table.string('color')
       table.string('breed')
+      table.timestamp('created_at')
+      table.integer('age')
+      table.boolean('is_active')
     })
   })
 }

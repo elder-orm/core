@@ -1,6 +1,5 @@
 import * as Knex from 'knex'
 import { underscore } from 'inflection'
-import { get } from 'lodash'
 import Base from './base'
 import Model from './model'
 import DatabaseConnectionError from './errors/connection-error'
@@ -28,22 +27,18 @@ export type optsSingle = {
   fields?: string[]
 }
 
-export type where =
-  | {
-      [key: string]: any
-    }
-  | Array<any>
+export type where = { [key: string]: any } | Array<any>
 
 function sanitize(
   Ctor: typeof Model,
   props: { [key: string]: any }
 ): { [key: string]: any } {
   const validPropKeys: string[] = Object.keys(props).filter(prop =>
-    Reflect.ownKeys(Model.meta.attributes).includes(prop)
+    Reflect.ownKeys(Ctor.meta.attributes).includes(prop)
   )
   const validProps: { [key: string]: any } = {}
   for (let prop of validPropKeys) {
-    validProps[prop] = props[prop]
+    validProps[underscore(prop)] = props[prop]
   }
   return validProps
 }
@@ -126,8 +121,8 @@ export default class Adapter extends Base {
     }
 
     // create a field map from model attr name to db column name eg. {myTitle => my_title, etc}
-    const modelFields = this.fieldsForModel(Model)
-    const dbFields = this.databaseFieldsForModel(Model)
+    const modelFields = this.fieldsForModel(Ctor)
+    const dbFields = this.databaseFieldsForModel(Ctor)
     const fieldMap = modelFields.map((modelField, i) => ({
       nameForModel: modelField,
       nameForDb: dbFields[i]
@@ -208,11 +203,19 @@ export default class Adapter extends Base {
   // }
 
   one(Ctor: typeof Model, where: where, options?: optsSingle) {
-    return this.knex.table(Ctor.tableName).where(where).first()
+    return this.knex
+      .table(Ctor.tableName)
+      .column(this.columnsForModel(Ctor))
+      .where(where)
+      .first()
   }
 
   oneById(Ctor: typeof Model, id: number, options?: optsSingle) {
-    return this.knex.table(Ctor.tableName).where(Ctor.idField, id).first()
+    return this.knex
+      .table(Ctor.tableName)
+      .column(this.columnsForModel(Ctor))
+      .where(Ctor.idField, id)
+      .first()
   }
 
   async oneBySql(
@@ -226,7 +229,10 @@ export default class Adapter extends Base {
   }
 
   some(Ctor: typeof Model, where: where, options?: optsMultiple) {
-    return this.knex.table(Ctor.tableName).where(where)
+    return this.knex
+      .table(Ctor.tableName)
+      .column(this.columnsForModel(Ctor))
+      .where(where)
   }
 
   async someBySql(
@@ -254,15 +260,15 @@ export default class Adapter extends Base {
     query = this.paginate(query, options)
     query = this.sort(query, options.sort)
 
-    const q = await query
-    await this.knex.destroy
-    return q
+    return query
   }
 
   async createRecord(Ctor: typeof Model, props: pojo): Promise<pojo> {
+    const data = sanitize(Ctor, props)
     const result = await this.knex(Ctor.tableName)
-      .insert(sanitize(Ctor, props))
-      .returning(Object.keys(Ctor.meta.attributes))
+      .insert(data)
+      .returning(Object.keys(data))
+
     return clone(result)
   }
 

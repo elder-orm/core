@@ -11,16 +11,10 @@ import { development } from '../../knexfile'
 import config from '../config'
 const adapterConfig = config.adapters.default
 
-const knex = Knex(development)
-
 beforeEach(async () => {
-  await knex('cat').truncate()
-  await knex.migrate.latest(development.migrations)
-  return knex.seed.run(development.migrations)
-})
-
-afterAll(() => {
-  knex.destroy()
+  const knex: Knex = Knex(development)
+  await knex.seed.run(development.migrations)
+  return knex.destroy()
 })
 
 function setupModel(Ctor: typeof Model) {
