@@ -52,7 +52,7 @@ describe('Using basic types', () => {
 
   test('Saving a DateType property', async () => {
     class Cat extends Model {
-      @type('name') name: string
+      @type('string') name: string
       @type('date') createdAt: Date
     }
     const orm = Elder.create({ config, models: { cat: Cat } })
@@ -99,7 +99,7 @@ describe('Using basic types', () => {
 
   test('Saving a BooleanType property', async () => {
     class Cat extends Model {
-      @type('name') name: string
+      @type('string') name: string
       @type('boolean') isActive: boolean
     }
     const orm = Elder.create({ config, models: { cat: Cat } })
@@ -146,7 +146,7 @@ describe('Using basic types', () => {
 
   test('Saving a NumberType property', async () => {
     class Cat extends Model {
-      @type('name') name: string
+      @type('string') name: string
       @type('number') age: number
     }
     const orm = Elder.create({ config, models: { cat: Cat } })
@@ -156,6 +156,66 @@ describe('Using basic types', () => {
     })
     const cat = await Cat.one({ name: 'Kitten Winters' })
     expect(cat.age).toBe(1)
+    return orm.destroy()
+  })
+
+  test('Accessing a StringType property', async () => {
+    class Cat extends Model {
+      @type('string') name: string
+    }
+    const orm = Elder.create({ config, models: { cat: Cat } })
+    const cat = await Cat.oneById(1)
+    expect(cat.name).toBe('Fluffy')
+    return orm.destroy()
+  })
+
+  test('Modifying a StringType property using a number', async () => {
+    class Cat extends Model {
+      @type('string') name: string
+    }
+    const orm = Elder.create({ config, models: { cat: Cat } })
+    const cat = await Cat.oneById(1)
+    cat.name = 13
+    expect(cat.name).toBe('13')
+    return orm.destroy()
+  })
+
+  test('Modifying a StringType property using an object', async () => {
+    class Cat extends Model {
+      @type('string') name: string
+    }
+    const orm = Elder.create({ config, models: { cat: Cat } })
+    const cat = await Cat.oneById(1)
+    cat.name = {
+      toString() {
+        return 'Dog'
+      }
+    }
+    expect(cat.name).toBe('Dog')
+    return orm.destroy()
+  })
+
+  test('Modifying a StringType property using a string', async () => {
+    class Cat extends Model {
+      @type('string') name: string
+    }
+    const orm = Elder.create({ config, models: { cat: Cat } })
+    const cat = await Cat.oneById(1)
+    cat.name = 'James McCat'
+    expect(cat.name).toBe('James McCat')
+    return orm.destroy()
+  })
+
+  test('Saving a StringType property', async () => {
+    class Cat extends Model {
+      @type('string') name: string
+    }
+    const orm = Elder.create({ config, models: { cat: Cat } })
+    await Cat.adapter.createRecord(Cat, {
+      name: 'Astrid Pono'
+    })
+    const cat = await Cat.one({ name: 'Astrid Pono' })
+    expect(cat.name).toBe('Astrid Pono')
     return orm.destroy()
   })
 })
