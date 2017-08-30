@@ -1,0 +1,16 @@
+machine:
+  environment:
+    DB_USER: ubuntu
+    DB_NAME: circle_test
+  node:
+    version: 8
+
+test:
+  pre:
+    - npm run migrate
+
+deployment:
+  production:
+    branch: master
+    commands:
+      - npm run semantic-release

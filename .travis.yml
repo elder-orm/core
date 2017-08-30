@@ -8,9 +8,7 @@ node_js:
   - '8'
 before_script:
   - psql -c 'create database travis_ci_test;' -U postgres
-  - npm run build
   - npm run migrate
-  - npm run seed
 after_success:
   - npm run semantic-release
 branches:
@@ -20,3 +18,5 @@ services:
   - postgresql
 env:
   - DB_NAME=travis_ci_test DB_USER=postgres
+addons:
+  postgresql: "9.5"

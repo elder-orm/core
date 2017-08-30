@@ -8,7 +8,7 @@
   "license": "MIT",
   "scripts": {
     "pretest": "npm run lint",
-    "test": "jest",
+    "test": "jest --runInBand",
     "test:dev": "jest --watch",
     "prepublish": "npm run build",
     "precommit": "lint-staged",
@@ -63,15 +63,10 @@
     }
   },
   "jest": {
-    "moduleFileExtensions": [
-      "ts",
-      "js"
-    ],
+    "moduleFileExtensions": ["ts", "js"],
     "transform": {
       "^.+\\.ts$": "<rootDir>/preprocessor.js"
     },
-    "testMatch": [
-      "**/tests/**/*.test.ts"
-    ]
+    "testMatch": ["**/tests/**/*.test.ts"]
   }
 }
