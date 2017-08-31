@@ -41,7 +41,7 @@ describe('Using basic types', () => {
 
   test('Modifying a DateType property using a date string', async () => {
     class Cat extends Model {
-      @type('date') createdAt: Date
+      @type('date') createdAt: any
     }
     const orm = Elder.create({ config, models: { cat: Cat } })
     const cat = await Cat.oneById(1)
@@ -88,7 +88,7 @@ describe('Using basic types', () => {
 
   test('Modifying a BooleanType property using a string', async () => {
     class Cat extends Model {
-      @type('boolean') isActive: boolean
+      @type('boolean') isActive: any
     }
     const orm = Elder.create({ config, models: { cat: Cat } })
     const cat = await Cat.oneById(1)
@@ -135,7 +135,7 @@ describe('Using basic types', () => {
 
   test('Modifying a NumberType property using a string', async () => {
     class Cat extends Model {
-      @type('number') age: number
+      @type('number') age: any
     }
     const orm = Elder.create({ config, models: { cat: Cat } })
     const cat = await Cat.oneById(1)
@@ -171,7 +171,7 @@ describe('Using basic types', () => {
 
   test('Modifying a StringType property using a number', async () => {
     class Cat extends Model {
-      @type('string') name: string
+      @type('string') name: any
     }
     const orm = Elder.create({ config, models: { cat: Cat } })
     const cat = await Cat.oneById(1)
@@ -182,7 +182,7 @@ describe('Using basic types', () => {
 
   test('Modifying a StringType property using an object', async () => {
     class Cat extends Model {
-      @type('string') name: string
+      @type('string') name: any
     }
     const orm = Elder.create({ config, models: { cat: Cat } })
     const cat = await Cat.oneById(1)

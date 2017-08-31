@@ -1,5 +1,3 @@
-import Base from './base'
-
 /**
  * IType interface defines how a model type needs to be defined.
  */
@@ -98,7 +96,13 @@ export interface IType {
 /**
  * Base implementation of a model type.
  */
-export default abstract class Type extends Base implements IType {
+export default class Type implements IType {
+  static create<T extends typeof Type>(
+    this: T,
+    ...args: any[]
+  ): T['prototype'] {
+    return new this(...args)
+  }
   /**
    * Default implementation of type access.
    * Simply returns the value as is without modification.

@@ -2,7 +2,7 @@ import Type from '../classes/type'
 import TypeError from '../classes/errors/type'
 
 export default class DateType extends Type {
-  modify(value: Date | string): Date | void {
+  modify(value: Date | string): Date {
     if (typeof value === 'string') {
       const date: Date = new Date(value)
       if (date.toString() === 'Invalid Date') {

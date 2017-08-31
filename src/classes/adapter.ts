@@ -1,6 +1,5 @@
 import * as Knex from 'knex'
 import { underscore } from 'inflection'
-import Base from './base'
 import Model from './model'
 import DatabaseConnectionError from './errors/connection-error'
 
@@ -51,17 +50,24 @@ function clone(obj: pojo): pojo {
   return JSON.parse(JSON.stringify(obj))
 }
 
-export default class Adapter extends Base {
+export default class Adapter {
   knex: Knex
   config: databaseConfig
 
   constructor(config: databaseConfig) {
-    super()
     this.config = config
     this.knex = Knex({
       client: 'pg',
       connection: config
     })
+  }
+
+  static create<T extends typeof Adapter>(
+    this: T,
+    config: databaseConfig,
+    ...args: any[]
+  ): T['prototype'] {
+    return new this(config, ...args)
   }
 
   async checkConnection() {
