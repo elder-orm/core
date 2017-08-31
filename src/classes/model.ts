@@ -5,8 +5,6 @@ import Base from './base'
 import Collection from './collection'
 import { pluralize, singularize, dasherize, underscore } from 'inflection'
 
-const clone = (obj: any): any => JSON.parse(JSON.stringify(obj))
-
 export default class Model extends Base {
   static idField: string = 'id'
   static adapter: Adapter
@@ -173,7 +171,7 @@ export default class Model extends Base {
     options?: optsSingle
   ): Promise<T['prototype']> {
     const result = await this.adapter.one(this, where, options)
-    return this.hydrate(clone(result))
+    return this.hydrate(result)
   }
 
   static async oneById<T extends typeof Model>(
@@ -182,7 +180,7 @@ export default class Model extends Base {
     options?: optsSingle
   ): Promise<T['prototype']> {
     const result = await this.adapter.oneById(this, id, options)
-    return this.hydrate(clone(result))
+    return this.hydrate(result)
   }
 
   static async oneBySql<T extends typeof Model>(
@@ -192,7 +190,7 @@ export default class Model extends Base {
     options?: optsSingle
   ): Promise<T['prototype']> {
     const result = await this.adapter.oneBySql(this, sql, params, options)
-    return this.hydrate(clone(result))
+    return this.hydrate(result)
   }
 
   static async some<T extends Model>(
@@ -281,8 +279,27 @@ export default class Model extends Base {
     return json
   }
 
-  save(): Promise<any> {
-    return Promise.resolve()
+  async save(): Promise<void> {
+    const Ctor = this.constructor as typeof Model
+    let result
+    if (!this.state.id) {
+      result = await Ctor.adapter.createRecord(Ctor, this.dehydrate())
+    } else {
+      const id = this.state[this.ctor.idField]
+      result = await Ctor.adapter.updateRecord(Ctor, id, this.dehydrate())
+    }
+    this.rehydrate(result)
+  }
+
+  toString() {
+    let state: string = '{'
+    const keyValueStrings: string[] = []
+    for (const [key, value] of Object.entries(this.state)) {
+      keyValueStrings.push(`${key}: '${value}'`)
+    }
+    state += keyValueStrings.join(', ')
+    state += '}'
+    return `${this.ctor.name} ${state}`
   }
 }
 

@@ -53,7 +53,7 @@ describe('Models', () => {
     expect(result.fizz).toBe('buzz')
   })
 
-  test('runInHooks:access', () => {
+  test('runTypeHooks:access', () => {
     class Cat extends Model {
       @type('string') fizz: string
     }
@@ -63,7 +63,7 @@ describe('Models', () => {
     expect(result).toEqual({ fizz: 'buzz' })
   })
 
-  test('runInHooks:modify', () => {
+  test('runTypeHooks:modify', () => {
     class Cat extends Model {
       @type('string') fizz: string
     }
@@ -73,7 +73,7 @@ describe('Models', () => {
     expect(result).toEqual({ fizz: 'buzz' })
   })
 
-  test('runInHooks:retrieve', () => {
+  test('runTypeHooks:retrieve', () => {
     class Cat extends Model {
       @type('string') fizz: string
     }
@@ -83,7 +83,7 @@ describe('Models', () => {
     expect(result).toEqual({ fizz: 'buzz' })
   })
 
-  test('runInHooks:store', () => {
+  test('runTypeHooks:store', () => {
     class Cat extends Model {
       @type('string') fizz: string
     }
@@ -222,5 +222,15 @@ describe('Models', () => {
     const cat = Cat.create()
 
     expect(cat.adapter).toBeInstanceOf(PostgresAdapter)
+  })
+
+  test('toString', () => {
+    class Cat extends Model {
+      @type('string') fizz: string
+    }
+    setupModel(Cat)
+    const cat = Cat.create({ fizz: 'buzz' })
+
+    expect(cat.toString()).toBe(`Cat {fizz: 'buzz'}`)
   })
 })

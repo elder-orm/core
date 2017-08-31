@@ -273,9 +273,9 @@ export default class Adapter {
     const data = sanitize(Ctor, props)
     const result = await this.knex(Ctor.tableName)
       .insert(data)
-      .returning(Object.keys(data))
+      .returning(this.databaseFieldsForModel(Ctor))
 
-    return clone(result)
+    return clone(result[0])
   }
 
   async updateRecord(
@@ -287,9 +287,9 @@ export default class Adapter {
     const result = await this.knex(Ctor.tableName)
       .update(sanitize(Ctor, props))
       .where(idField, key)
-      .returning(Object.keys(Ctor.meta.attributes))
+      .returning(this.databaseFieldsForModel(Ctor))
 
-    return clone(result)
+    return clone(result[0])
   }
 
   async deleteRecord(Ctor: typeof Model, key: string | number): Promise<void> {
