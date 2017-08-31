@@ -2,7 +2,7 @@ import Type from '../classes/type'
 import TypeError from '../classes/errors/type'
 
 export default class NumberType extends Type {
-  modify(value: number | string) {
+  modify(value: number | string): number {
     const num = Number(value)
     if (isNaN(num)) {
       throw new TypeError(

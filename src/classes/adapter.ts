@@ -1,6 +1,5 @@
 import * as Knex from 'knex'
 import { underscore } from 'inflection'
-import Base from './base'
 import Model from './model'
 import DatabaseConnectionError from './errors/connection-error'
 
@@ -51,17 +50,24 @@ function clone(obj: pojo): pojo {
   return JSON.parse(JSON.stringify(obj))
 }
 
-export default class Adapter extends Base {
+export default class Adapter {
   knex: Knex
   config: databaseConfig
 
   constructor(config: databaseConfig) {
-    super()
     this.config = config
     this.knex = Knex({
       client: 'pg',
       connection: config
     })
+  }
+
+  static create<T extends typeof Adapter>(
+    this: T,
+    config: databaseConfig,
+    ...args: any[]
+  ): T['prototype'] {
+    return new this(config, ...args)
   }
 
   async checkConnection() {
@@ -267,9 +273,9 @@ export default class Adapter extends Base {
     const data = sanitize(Ctor, props)
     const result = await this.knex(Ctor.tableName)
       .insert(data)
-      .returning(Object.keys(data))
+      .returning(this.databaseFieldsForModel(Ctor))
 
-    return clone(result)
+    return clone(result[0])
   }
 
   async updateRecord(
@@ -281,9 +287,9 @@ export default class Adapter extends Base {
     const result = await this.knex(Ctor.tableName)
       .update(sanitize(Ctor, props))
       .where(idField, key)
-      .returning(Object.keys(Ctor.meta.attributes))
+      .returning(this.databaseFieldsForModel(Ctor))
 
-    return clone(result)
+    return clone(result[0])
   }
 
   async deleteRecord(Ctor: typeof Model, key: string | number): Promise<void> {

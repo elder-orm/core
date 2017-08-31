@@ -12,7 +12,7 @@ import Type from '../classes/type'
  * ```
  */
 export default class StringType extends Type {
-  modify(value: string | number) {
+  modify(value: string | number): string {
     return String(value)
   }
 

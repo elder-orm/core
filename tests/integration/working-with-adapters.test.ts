@@ -1,5 +1,6 @@
 import Elder, {
   StringType,
+  NumberType,
   PostgresAdapter,
   Serializer,
   Model,
@@ -21,7 +22,7 @@ function setupModel(Ctor: typeof Model) {
   const adapter = PostgresAdapter.create(adapterConfig)
   const serializer = Serializer.create()
   Ctor.setup(
-    { string: new StringType() },
+    { string: new StringType(), number: new NumberType() },
     { default: adapter },
     { default: serializer }
   )

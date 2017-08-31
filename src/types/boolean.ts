@@ -12,27 +12,27 @@ export default class BooleanType extends Type {
     `)
   }
 
-  modify(value: boolean | number | string): boolean | void {
+  modify(value: boolean | number | string): boolean {
     if (['true', 'TRUE', 'T', 't', '1', 1, true].includes(value)) {
       return true
     } else if (['false', 'FALSE', 'F', 'f', '0', 0, false].includes(value)) {
       return false
-    } else {
-      this.throwTypeError(value)
     }
+    this.throwTypeError(value)
+    return false
   }
 
   store(value: boolean): string {
     return value === true ? 'TRUE' : 'FALSE'
   }
 
-  retrieve(value: string | number | boolean): boolean | void {
+  retrieve(value: string | number | boolean): boolean {
     if (['true', 'TRUE', 'T', 't', '1', 1, true].includes(value)) {
       return true
     } else if (['false', 'FALSE', 'F', 'f', '0', 0, false].includes(value)) {
       return false
-    } else {
-      this.throwTypeError(value)
     }
+    this.throwTypeError(value)
+    return false
   }
 }

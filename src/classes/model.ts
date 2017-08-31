@@ -5,8 +5,6 @@ import Base from './base'
 import Collection from './collection'
 import { pluralize, singularize, dasherize, underscore } from 'inflection'
 
-const clone = (obj: any): any => JSON.parse(JSON.stringify(obj))
-
 export default class Model extends Base {
   static idField: string = 'id'
   static adapter: Adapter
@@ -16,17 +14,20 @@ export default class Model extends Base {
     attributes: {},
     relationships: {}
   }
-  private static _tableName: string
+  static _tableName: string
+  static _modelName: string
+  static _plural: string
+  state: props = {}
+
+  id: number
 
   constructor(props: { [prop: string]: any } = {}) {
     super()
     const Ctor = this.constructor as typeof Model
     const that: { [key: string]: any } = this
 
-    for (const [key, value] of Object.entries(props)) {
-      if (!Ctor.meta.attributes[key]) continue
-      const type = Ctor.meta.attributes[key]
-      that[key] = type.retrieve(value)
+    if (Reflect.ownKeys(props).length) {
+      that.populate(props)
     }
 
     return new Proxy(this, {
@@ -34,28 +35,54 @@ export default class Model extends Base {
         if (!Reflect.ownKeys(Ctor.meta.attributes).includes(name)) {
           return that[name]
         }
-
-        const type = Ctor.meta.attributes[name]
-        return type.access(that[name])
+        if (
+          typeof that.state[name] === 'undefined' ||
+          that.state[name] === null
+        ) {
+          return null
+        }
+        return Ctor.runTypeHook(name, that.state[name], 'access')
       },
       set(target, name, value) {
         if (Ctor.meta.attributes[name]) {
-          const type = Ctor.meta.attributes[name]
-          that[name] = type.modify(value)
-        } else {
-          that[name] = value
+          that.state[name] = Ctor.runTypeHook(name, value, 'modify')
         }
+        that[name] = value
         return true
       }
     })
   }
 
-  static createCollection(Ctor: typeof Model, arr: any[]): Collection {
-    const collection = new Collection()
-    for (const item of arr) {
-      collection.push(Ctor.create(clone(item)))
+  static hydrate<T extends typeof Model>(
+    this: T,
+    props: props
+  ): T['prototype'] {
+    return new this(this.runTypeHooks(props, 'retrieve'))
+  }
+
+  static runTypeHook(key: any, value: any, hook: typeHook): any {
+    const type: Type = this.meta.attributes[key]
+    switch (hook) {
+      case 'access':
+        return type.access(value)
+      case 'modify':
+        return type.modify(value)
+      case 'retrieve':
+        return type.retrieve(value)
+      case 'store':
+        return type.store(value)
+      case 'validate':
+        return type.validate(value)
     }
-    return collection
+  }
+
+  static runTypeHooks(props: props, hook: typeHook): props {
+    const processed: props = {}
+    for (const attr of Reflect.ownKeys(this.meta.attributes)) {
+      if (typeof props[attr] === 'undefined' || props[attr] === null) continue
+      processed[attr] = this.runTypeHook(attr, props[attr], hook)
+    }
+    return processed
   }
 
   static attachAdapters(adapters: {
@@ -104,10 +131,15 @@ export default class Model extends Base {
   }
 
   static get plural(): string {
+    if (this._plural) return this._plural
     const nameWithoutModel = this.name.replace('Model', '').toLowerCase()
     const nameUnderscored = underscore(nameWithoutModel)
     const nameDasherized = dasherize(nameUnderscored)
     return pluralize(nameDasherized)
+  }
+
+  static set plural(name: string) {
+    this._plural = name
   }
 
   static get tableName(): string {
@@ -122,48 +154,90 @@ export default class Model extends Base {
   }
 
   static get modelName(): string {
+    if (this._modelName) return this._modelName
     const nameWithoutModel = this.name.replace('Model', '').toLowerCase()
     const nameUnderscored = underscore(nameWithoutModel)
     const nameDasherized = dasherize(nameUnderscored)
     return singularize(nameDasherized)
   }
 
-  static async one(where: where, options?: optsSingle) {
+  static set modelName(name: string) {
+    this._modelName = name
+  }
+
+  static async one<T extends typeof Model>(
+    this: T,
+    where: where,
+    options?: optsSingle
+  ): Promise<T['prototype']> {
     const result = await this.adapter.one(this, where, options)
-    return this.create(clone(result))
+    return this.hydrate(result)
   }
 
-  static async oneById(id: number, options?: optsSingle) {
+  static async oneById<T extends typeof Model>(
+    this: T,
+    id: number,
+    options?: optsSingle
+  ): Promise<T['prototype']> {
     const result = await this.adapter.oneById(this, id, options)
-    return this.create(clone(result))
+    return this.hydrate(result)
   }
 
-  static async oneBySql(
+  static async oneBySql<T extends typeof Model>(
+    this: T,
     sql: string,
     params?: string[] | number[],
     options?: optsSingle
-  ) {
+  ): Promise<T['prototype']> {
     const result = await this.adapter.oneBySql(this, sql, params, options)
-    return this.create(clone(result))
+    return this.hydrate(result)
   }
 
-  static async some(where: where, options?: optsMultiple) {
+  static async some<T extends Model>(
+    where: where,
+    options?: optsMultiple
+  ): Promise<Collection> {
     const results = await this.adapter.some(this, where, options)
-    return this.createCollection(this, results)
+    const instances: T[] = results.map(this.hydrate.bind(this))
+    return new Collection(...instances)
   }
 
-  static async someBySql(
+  static async someBySql<T extends Model>(
     sql: string,
     params?: string[] | number[],
     options?: optsMultiple
-  ) {
-    const results = await this.adapter.someBySql(this, sql, params, options)
-    return this.createCollection(this, results)
+  ): Promise<Collection> {
+    const results: any[] = await this.adapter.someBySql(
+      this,
+      sql,
+      params,
+      options
+    )
+    const instances: T[] = results.map(this.hydrate.bind(this))
+    return new Collection(...instances)
   }
 
-  static async all(options?: optsMultiple) {
-    const results = await this.adapter.all(this, options)
-    return this.createCollection(this, results)
+  static async all<T extends Model>(
+    options?: optsMultiple
+  ): Promise<Collection> {
+    const results: any[] = await this.adapter.all(this, options)
+    const instances: T[] = results.map(this.hydrate.bind(this))
+    return new Collection(...instances)
+  }
+
+  rehydrate(props: props): void {
+    this.populate(this.ctor.runTypeHooks(props, 'retrieve'))
+  }
+
+  dehydrate(): props {
+    return this.ctor.runTypeHooks(
+      this.ctor.runTypeHooks(this.state, 'access'),
+      'store'
+    )
+  }
+
+  populate(props: props): void {
+    this.state = this.ctor.runTypeHooks(props, 'modify')
   }
 
   get adapter(): Adapter {
@@ -198,15 +272,34 @@ export default class Model extends Base {
     const json: { [key: string]: any } = {}
     const { attributes } = this.ctor.meta
     for (const [property, type] of Object.entries(attributes)) {
-      if (attributes[property]) {
+      if (attributes[property] && this[property]) {
         json[property] = type.access(this[property])
       }
     }
     return json
   }
 
-  save(): Promise<any> {
-    return Promise.resolve()
+  async save(): Promise<void> {
+    const Ctor = this.constructor as typeof Model
+    let result
+    if (!this.state.id) {
+      result = await Ctor.adapter.createRecord(Ctor, this.dehydrate())
+    } else {
+      const id = this.state[this.ctor.idField]
+      result = await Ctor.adapter.updateRecord(Ctor, id, this.dehydrate())
+    }
+    this.rehydrate(result)
+  }
+
+  toString() {
+    let state: string = '{'
+    const keyValueStrings: string[] = []
+    for (const [key, value] of Object.entries(this.state)) {
+      keyValueStrings.push(`${key}: '${value}'`)
+    }
+    state += keyValueStrings.join(', ')
+    state += '}'
+    return `${this.ctor.name} ${state}`
   }
 }
 
@@ -244,3 +337,9 @@ export type modelMeta = {
   attributes: { [attrName: string]: Type }
   relationships: { [relName: string]: relationship }
 }
+
+export type props = {
+  [name: string]: any
+}
+
+export type typeHook = 'access' | 'modify' | 'retrieve' | 'store' | 'validate'
