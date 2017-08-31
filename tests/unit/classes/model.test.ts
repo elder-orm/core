@@ -114,4 +114,113 @@ describe('Models', () => {
 
     expect(cat.toJSON()).toEqual({ fizz: 'buzz', id: 1 })
   })
+
+  test('serialize:implicit', () => {
+    class Cat extends Model {
+      @type('string') fizz: string
+    }
+    setupModel(Cat)
+    const cat = Cat.create()
+    cat.populate({ fizz: 'buzz', fake: 'prop', id: 1 })
+
+    expect(cat.serialize()).toEqual({ fizz: 'buzz', id: 1 })
+  })
+
+  test('serialize:default', () => {
+    class Cat extends Model {
+      @type('string') fizz: string
+    }
+    setupModel(Cat)
+    const cat = Cat.create()
+    cat.populate({ fizz: 'buzz', fake: 'prop', id: 1 })
+
+    expect(cat.serialize('default')).toEqual({ fizz: 'buzz', id: 1 })
+  })
+
+  test('ctor', () => {
+    class Cat extends Model {
+      @type('string') fizz: string
+    }
+    setupModel(Cat)
+    const cat = Cat.create()
+
+    expect(cat.ctor).toBe(Cat)
+  })
+
+  test('serializers', () => {
+    class Cat extends Model {
+      @type('string') fizz: string
+    }
+    setupModel(Cat)
+    const cat = Cat.create()
+
+    expect(cat.serializers.default).toBeInstanceOf(Serializer)
+  })
+
+  test('plural', () => {
+    class Cat extends Model {
+      @type('string') fizz: string
+    }
+    setupModel(Cat)
+
+    expect(Cat.plural).toBe('cats')
+  })
+
+  test('plural:overwritten', () => {
+    class Cat extends Model {
+      static plural = 'catz'
+      @type('string') fizz: string
+    }
+    setupModel(Cat)
+
+    expect(Cat.plural).toBe('catz')
+  })
+
+  test('tableName', () => {
+    class Cat extends Model {
+      @type('string') fizz: string
+    }
+    setupModel(Cat)
+
+    expect(Cat.tableName).toBe('cat')
+  })
+
+  test('tableName:overwritten', () => {
+    class Cat extends Model {
+      static tableName = 'cats'
+      @type('string') fizz: string
+    }
+    setupModel(Cat)
+
+    expect(Cat.tableName).toBe('cats')
+  })
+
+  test('modelName', () => {
+    class Cat extends Model {
+      @type('string') fizz: string
+    }
+    setupModel(Cat)
+
+    expect(Cat.modelName).toBe('cat')
+  })
+
+  test('modelName:overwritten', () => {
+    class Cat extends Model {
+      static modelName = 'kitty'
+      @type('string') fizz: string
+    }
+    setupModel(Cat)
+
+    expect(Cat.modelName).toBe('kitty')
+  })
+
+  test('adapter', () => {
+    class Cat extends Model {
+      @type('string') fizz: string
+    }
+    setupModel(Cat)
+    const cat = Cat.create()
+
+    expect(cat.adapter).toBeInstanceOf(PostgresAdapter)
+  })
 })

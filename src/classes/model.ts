@@ -17,7 +17,11 @@ export default class Model extends Base {
     relationships: {}
   }
   static _tableName: string
+  static _modelName: string
+  static _plural: string
   state: props = {}
+
+  id: number
 
   constructor(props: { [prop: string]: any } = {}) {
     super()
@@ -129,10 +133,15 @@ export default class Model extends Base {
   }
 
   static get plural(): string {
+    if (this._plural) return this._plural
     const nameWithoutModel = this.name.replace('Model', '').toLowerCase()
     const nameUnderscored = underscore(nameWithoutModel)
     const nameDasherized = dasherize(nameUnderscored)
     return pluralize(nameDasherized)
+  }
+
+  static set plural(name: string) {
+    this._plural = name
   }
 
   static get tableName(): string {
@@ -147,10 +156,15 @@ export default class Model extends Base {
   }
 
   static get modelName(): string {
+    if (this._modelName) return this._modelName
     const nameWithoutModel = this.name.replace('Model', '').toLowerCase()
     const nameUnderscored = underscore(nameWithoutModel)
     const nameDasherized = dasherize(nameUnderscored)
     return singularize(nameDasherized)
+  }
+
+  static set modelName(name: string) {
+    this._modelName = name
   }
 
   static async one<T extends typeof Model>(
