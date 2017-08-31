@@ -77,5 +77,6 @@ describe('Working with models', () => {
     const cat = await Cat.oneById(12)
 
     expect(cat.name).toBe('Fluffy')
+    return Cat.adapter.destroy()
   })
 })
