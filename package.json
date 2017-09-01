@@ -8,8 +8,10 @@
   "license": "MIT",
   "scripts": {
     "pretest": "npm run lint",
-    "test": "jest --runInBand",
+    "test": "npm run test:unit && npm run test:integration",
     "test:dev": "jest --watch",
+    "test:unit": "jest tests/unit",
+    "test:integration": "jest --runInBand tests/integration",
     "prepublish": "npm run build",
     "precommit": "lint-staged",
     "commit": "git-cz",

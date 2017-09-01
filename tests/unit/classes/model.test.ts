@@ -28,6 +28,7 @@ describe('Models', () => {
     const cat = Cat.hydrate({ fizz: 'buzz' })
 
     expect(cat.fizz).toEqual('buzz')
+    return Cat.adapter.destroy()
   })
 
   test('rehydrate', () => {
@@ -39,6 +40,7 @@ describe('Models', () => {
     cat.rehydrate({ fizz: 'buzz' })
 
     expect(cat.state.fizz).toBe('buzz')
+    return Cat.adapter.destroy()
   })
 
   test('dehydrate', () => {
@@ -51,6 +53,7 @@ describe('Models', () => {
     const result = cat.dehydrate()
 
     expect(result.fizz).toBe('buzz')
+    return Cat.adapter.destroy()
   })
 
   test('runTypeHooks:access', () => {
@@ -61,6 +64,7 @@ describe('Models', () => {
     const result = Cat.runTypeHooks({ fizz: 'buzz', fake: 'prop' }, 'access')
 
     expect(result).toEqual({ fizz: 'buzz' })
+    return Cat.adapter.destroy()
   })
 
   test('runTypeHooks:modify', () => {
@@ -71,6 +75,7 @@ describe('Models', () => {
     const result = Cat.runTypeHooks({ fizz: 'buzz', fake: 'prop' }, 'modify')
 
     expect(result).toEqual({ fizz: 'buzz' })
+    return Cat.adapter.destroy()
   })
 
   test('runTypeHooks:retrieve', () => {
@@ -81,6 +86,7 @@ describe('Models', () => {
     const result = Cat.runTypeHooks({ fizz: 'buzz', fake: 'prop' }, 'retrieve')
 
     expect(result).toEqual({ fizz: 'buzz' })
+    return Cat.adapter.destroy()
   })
 
   test('runTypeHooks:store', () => {
@@ -91,6 +97,7 @@ describe('Models', () => {
     const result = Cat.runTypeHooks({ fizz: 'buzz', fake: 'prop' }, 'store')
 
     expect(result).toEqual({ fizz: 'buzz' })
+    return Cat.adapter.destroy()
   })
 
   test('populate', () => {
@@ -102,6 +109,7 @@ describe('Models', () => {
     cat.populate({ fizz: 'buzz', fake: 'prop', id: 1 })
 
     expect(cat.state).toEqual({ fizz: 'buzz', id: 1 })
+    return Cat.adapter.destroy()
   })
 
   test('toJSON', () => {
@@ -113,6 +121,7 @@ describe('Models', () => {
     cat.populate({ fizz: 'buzz', fake: 'prop', id: 1 })
 
     expect(cat.toJSON()).toEqual({ fizz: 'buzz', id: 1 })
+    return Cat.adapter.destroy()
   })
 
   test('serialize:implicit', () => {
@@ -124,6 +133,7 @@ describe('Models', () => {
     cat.populate({ fizz: 'buzz', fake: 'prop', id: 1 })
 
     expect(cat.serialize()).toEqual({ fizz: 'buzz', id: 1 })
+    return Cat.adapter.destroy()
   })
 
   test('serialize:default', () => {
@@ -135,6 +145,7 @@ describe('Models', () => {
     cat.populate({ fizz: 'buzz', fake: 'prop', id: 1 })
 
     expect(cat.serialize('default')).toEqual({ fizz: 'buzz', id: 1 })
+    return Cat.adapter.destroy()
   })
 
   test('ctor', () => {
@@ -145,6 +156,7 @@ describe('Models', () => {
     const cat = Cat.create()
 
     expect(cat.ctor).toBe(Cat)
+    return Cat.adapter.destroy()
   })
 
   test('serializers', () => {
@@ -155,6 +167,7 @@ describe('Models', () => {
     const cat = Cat.create()
 
     expect(cat.serializers.default).toBeInstanceOf(Serializer)
+    return Cat.adapter.destroy()
   })
 
   test('plural', () => {
@@ -164,6 +177,7 @@ describe('Models', () => {
     setupModel(Cat)
 
     expect(Cat.plural).toBe('cats')
+    return Cat.adapter.destroy()
   })
 
   test('plural:overwritten', () => {
@@ -174,6 +188,7 @@ describe('Models', () => {
     setupModel(Cat)
 
     expect(Cat.plural).toBe('catz')
+    return Cat.adapter.destroy()
   })
 
   test('tableName', () => {
@@ -183,6 +198,7 @@ describe('Models', () => {
     setupModel(Cat)
 
     expect(Cat.tableName).toBe('cat')
+    return Cat.adapter.destroy()
   })
 
   test('tableName:overwritten', () => {
@@ -193,6 +209,7 @@ describe('Models', () => {
     setupModel(Cat)
 
     expect(Cat.tableName).toBe('cats')
+    return Cat.adapter.destroy()
   })
 
   test('modelName', () => {
@@ -202,6 +219,7 @@ describe('Models', () => {
     setupModel(Cat)
 
     expect(Cat.modelName).toBe('cat')
+    return Cat.adapter.destroy()
   })
 
   test('modelName:overwritten', () => {
@@ -212,6 +230,7 @@ describe('Models', () => {
     setupModel(Cat)
 
     expect(Cat.modelName).toBe('kitty')
+    return Cat.adapter.destroy()
   })
 
   test('adapter', () => {
@@ -222,6 +241,7 @@ describe('Models', () => {
     const cat = Cat.create()
 
     expect(cat.adapter).toBeInstanceOf(PostgresAdapter)
+    return Cat.adapter.destroy()
   })
 
   test('toString', () => {
@@ -232,5 +252,6 @@ describe('Models', () => {
     const cat = Cat.create({ fizz: 'buzz' })
 
     expect(cat.toString()).toBe(`Cat {fizz: 'buzz'}`)
+    return Cat.adapter.destroy()
   })
 })

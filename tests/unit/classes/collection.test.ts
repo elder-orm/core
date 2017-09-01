@@ -25,5 +25,6 @@ describe('Collection', () => {
     const result = collection.serialize()
 
     expect(result).toEqual([{ fizz: 'buzz' }])
+    return orm.destroy()
   })
 })
