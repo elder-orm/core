@@ -13,5 +13,6 @@ describe('Serializers', () => {
     const result = serializer.serialize(Model, payload)
 
     expect(result).toEqual({ fizz: 'buzz' })
+    return orm.destroy()
   })
 })
