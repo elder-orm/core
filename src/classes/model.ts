@@ -290,7 +290,7 @@ export default class Model extends Base {
     for (const prop of Reflect.ownKeys(where)) {
       if (!Reflect.ownKeys(this.meta.attributes).includes(prop)) {
         throw new Error(`
-          Invalid key '${prop}' defined on 'where' given to 'Model.deleteSome'.
+          Invalid key '${prop}' defined on 'where' given to 'Model.deleteOne'.
             Included properties must be defined on model class
             Valid properties '${Reflect.ownKeys(this.meta.attributes).join(
               "', '"
@@ -354,7 +354,7 @@ export default class Model extends Base {
     for (const prop of Reflect.ownKeys(props)) {
       if (!Reflect.ownKeys(this.meta.attributes).includes(prop)) {
         throw new Error(`
-          Invalid key '${prop}' defined on 'props' given to 'Model.updateAll'.
+          Invalid key '${prop}' defined on 'props' given to 'Model.updateOneById'.
             Included properties must be defined on model class
             Valid properties '${Reflect.ownKeys(this.meta.attributes).join(
               "', '"
@@ -370,7 +370,7 @@ export default class Model extends Base {
     for (const prop of Reflect.ownKeys(where)) {
       if (!Reflect.ownKeys(this.meta.attributes).includes(prop)) {
         throw new Error(`
-          Invalid key '${prop}' defined on 'where' given to 'Model.updateSome'.
+          Invalid key '${prop}' defined on 'where' given to 'Model.updateOne'.
             Included properties must be defined on model class
             Valid properties '${Reflect.ownKeys(this.meta.attributes).join(
               "', '"
@@ -382,7 +382,7 @@ export default class Model extends Base {
     for (const prop of Reflect.ownKeys(props)) {
       if (!Reflect.ownKeys(this.meta.attributes).includes(prop)) {
         throw new Error(`
-          Invalid key '${prop}' defined on 'props' given to 'Model.updateSome'.
+          Invalid key '${prop}' defined on 'props' given to 'Model.updateOne'.
             Included properties to update must be defined on model class
             Valid properties '${Reflect.ownKeys(this.meta.attributes).join(
               "', '"
