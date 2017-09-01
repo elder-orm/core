@@ -24,6 +24,7 @@ describe('Using basic types', () => {
     }
     const orm = Elder.create({ config, models: { cat: Cat } })
     const cat = await Cat.oneById(1)
+    if (!cat) throw new Error('Unable to find cat with id 1')
     expect(cat.createdAt.toISOString()).toBe('2017-08-28T20:17:25.601Z')
     return orm.destroy()
   })
@@ -34,6 +35,7 @@ describe('Using basic types', () => {
     }
     const orm = Elder.create({ config, models: { cat: Cat } })
     const cat = await Cat.oneById(1)
+    if (!cat) throw new Error('Unable to find cat with id 1')
     cat.createdAt = new Date('2017-06-28T20:17:25.601Z')
     expect(cat.createdAt.toISOString()).toBe('2017-06-28T20:17:25.601Z')
     return orm.destroy()
@@ -45,6 +47,7 @@ describe('Using basic types', () => {
     }
     const orm = Elder.create({ config, models: { cat: Cat } })
     const cat = await Cat.oneById(1)
+    if (!cat) throw new Error('Unable to find cat with id 1')
     cat.createdAt = '2017-04-28T20:17:25.601Z'
     expect(cat.createdAt.toISOString()).toBe('2017-04-28T20:17:25.601Z')
     return orm.destroy()
@@ -61,6 +64,7 @@ describe('Using basic types', () => {
       createdAt: '2017-01-28T20:17:25.601Z'
     })
     const cat2 = await Cat.one({ name: 'My Tibbles' })
+    if (!cat2) throw new Error('Unable to find cat My Tibbles')
     expect(cat2.createdAt.toISOString()).toBe('2017-01-28T20:17:25.601Z')
     return orm.destroy()
   })
@@ -71,6 +75,7 @@ describe('Using basic types', () => {
     }
     const orm = Elder.create({ config, models: { cat: Cat } })
     const cat = await Cat.oneById(1)
+    if (!cat) throw new Error('Unable to find cat with id 1')
     expect(cat.isActive).toBe(true)
     return orm.destroy()
   })
@@ -81,6 +86,7 @@ describe('Using basic types', () => {
     }
     const orm = Elder.create({ config, models: { cat: Cat } })
     const cat = await Cat.oneById(1)
+    if (!cat) throw new Error('Unable to find cat with id 1')
     cat.isActive = false
     expect(cat.isActive).toBe(false)
     return orm.destroy()
@@ -92,6 +98,7 @@ describe('Using basic types', () => {
     }
     const orm = Elder.create({ config, models: { cat: Cat } })
     const cat = await Cat.oneById(1)
+    if (!cat) throw new Error('Unable to find cat with id 1')
     cat.isActive = 'f'
     expect(cat.isActive).toBe(false)
     return orm.destroy()
@@ -108,6 +115,7 @@ describe('Using basic types', () => {
       isActive: false
     })
     const cat = await Cat.one({ name: 'The very active Mr Hollingsworth' })
+    if (!cat) throw new Error('Unable to find cat The very active Mr...')
     expect(cat.isActive).toBe(false)
     return orm.destroy()
   })
@@ -118,6 +126,7 @@ describe('Using basic types', () => {
     }
     const orm = Elder.create({ config, models: { cat: Cat } })
     const cat = await Cat.oneById(1)
+    if (!cat) throw new Error('Unable to find cat with id 1')
     expect(cat.age).toBe(12)
     return orm.destroy()
   })
@@ -128,6 +137,7 @@ describe('Using basic types', () => {
     }
     const orm = Elder.create({ config, models: { cat: Cat } })
     const cat = await Cat.oneById(1)
+    if (!cat) throw new Error('Unable to find cat with id 1')
     cat.age = 13
     expect(cat.age).toBe(13)
     return orm.destroy()
@@ -139,6 +149,7 @@ describe('Using basic types', () => {
     }
     const orm = Elder.create({ config, models: { cat: Cat } })
     const cat = await Cat.oneById(1)
+    if (!cat) throw new Error('Unable to find cat with id 1')
     cat.age = '13'
     expect(cat.age).toBe(13)
     return orm.destroy()
@@ -155,6 +166,7 @@ describe('Using basic types', () => {
       age: 1
     })
     const cat = await Cat.one({ name: 'Kitten Winters' })
+    if (!cat) throw new Error('Unable to find cat Kitten Winters')
     expect(cat.age).toBe(1)
     return orm.destroy()
   })
@@ -165,6 +177,7 @@ describe('Using basic types', () => {
     }
     const orm = Elder.create({ config, models: { cat: Cat } })
     const cat = await Cat.oneById(1)
+    if (!cat) throw new Error('Unable to find cat with id 1')
     expect(cat.name).toBe('Fluffy')
     return orm.destroy()
   })
@@ -175,6 +188,7 @@ describe('Using basic types', () => {
     }
     const orm = Elder.create({ config, models: { cat: Cat } })
     const cat = await Cat.oneById(1)
+    if (!cat) throw new Error('Unable to find cat with id 1')
     cat.name = 13
     expect(cat.name).toBe('13')
     return orm.destroy()
@@ -186,6 +200,7 @@ describe('Using basic types', () => {
     }
     const orm = Elder.create({ config, models: { cat: Cat } })
     const cat = await Cat.oneById(1)
+    if (!cat) throw new Error('Unable to find cat with id 1')
     cat.name = {
       toString() {
         return 'Dog'
@@ -201,6 +216,7 @@ describe('Using basic types', () => {
     }
     const orm = Elder.create({ config, models: { cat: Cat } })
     const cat = await Cat.oneById(1)
+    if (!cat) throw new Error('Unable to find cat with id 1')
     cat.name = 'James McCat'
     expect(cat.name).toBe('James McCat')
     return orm.destroy()
@@ -215,6 +231,7 @@ describe('Using basic types', () => {
       name: 'Astrid Pono'
     })
     const cat = await Cat.one({ name: 'Astrid Pono' })
+    if (!cat) throw new Error('Unable to find cat Astrid Pono')
     expect(cat.name).toBe('Astrid Pono')
     return orm.destroy()
   })

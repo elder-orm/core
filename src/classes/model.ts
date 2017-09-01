@@ -169,8 +169,9 @@ export default class Model extends Base {
     this: T,
     where: where,
     options?: optsSingle
-  ): Promise<T['prototype']> {
+  ): Promise<T['prototype'] | null> {
     const result = await this.adapter.one(this, where, options)
+    if (!result) return null
     return this.hydrate(result)
   }
 
@@ -178,8 +179,9 @@ export default class Model extends Base {
     this: T,
     id: number,
     options?: optsSingle
-  ): Promise<T['prototype']> {
+  ): Promise<T['prototype'] | null> {
     const result = await this.adapter.oneById(this, id, options)
+    if (!result) return null
     return this.hydrate(result)
   }
 
@@ -188,8 +190,9 @@ export default class Model extends Base {
     sql: string,
     params?: string[] | number[],
     options?: optsSingle
-  ): Promise<T['prototype']> {
+  ): Promise<T['prototype'] | null> {
     const result = await this.adapter.oneBySql(this, sql, params, options)
+    if (!result) return null
     return this.hydrate(result)
   }
 
@@ -289,6 +292,18 @@ export default class Model extends Base {
       result = await Ctor.adapter.updateRecord(Ctor, id, this.dehydrate())
     }
     this.rehydrate(result)
+  }
+
+  async del(): Promise<void> {
+    const Ctor = this.constructor as typeof Model
+    if (!this.state[Ctor.idField]) {
+      throw new Error(
+        `Unable to delete record for model '${Ctor.name}'.
+          Expected '${Ctor.idField}' field to contain a value but was empty`
+      )
+    }
+    const id = this.state[this.ctor.idField]
+    return Ctor.adapter.deleteRecord(Ctor, id)
   }
 
   toString() {

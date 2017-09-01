@@ -48,9 +48,11 @@ describe('Working with models', () => {
     }
     setupModel(Cat)
     const cat = await Cat.oneById(1)
+    if (cat === null) throw new Error('Unable to find cat with id 1')
     cat.name = 'Moonshine McMuffin'
     await cat.save()
     const cat2 = await Cat.one({ name: 'Moonshine McMuffin' })
+    if (cat2 === null) throw new Error('Unable to find cat Moonshine McMuffin')
     expect(cat2.id).toBe(1)
     return Cat.adapter.destroy()
   })
@@ -75,8 +77,36 @@ describe('Working with models', () => {
     }
     setupModel(Cat)
     const cat = await Cat.oneById(12)
-
+    if (cat === null) throw new Error('Unable to find cat with age 12')
     expect(cat.name).toBe('Fluffy')
     return Cat.adapter.destroy()
+  })
+
+  test('Deleting a record', async () => {
+    class Cat extends Model {
+      @type('string') name: string
+    }
+    setupModel(Cat)
+    const cat = await Cat.oneById(1)
+    if (cat === null) throw new Error('Unable to find cat with id 1')
+    await cat.del()
+    const cat2 = await Cat.oneById(1)
+    expect(cat2).toBe(null)
+    return Cat.adapter.destroy()
+  })
+
+  test('Deleting a record where record has not yet been saved', async () => {
+    class Cat extends Model {
+      @type('string') name: string
+    }
+    setupModel(Cat)
+    const cat = await Cat.create({ name: 'Mr Timms' })
+    if (cat === null) throw new Error('Unable to find cat with id 1')
+    try {
+      await cat.del()
+    } catch (e) {
+      return Cat.adapter.destroy()
+    }
+    throw new Error('cat.del() should have thrown but did not')
   })
 })
