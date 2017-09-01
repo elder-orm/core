@@ -11,10 +11,10 @@ describe('@type() decorator', () => {
     }
 
     expect(Cat.meta.attributeDefinition).toEqual({
-      str: 'string',
-      num: 'number',
-      dat: 'date',
-      bol: 'boolean'
+      str: { type: 'string' },
+      num: { type: 'number' },
+      dat: { type: 'date' },
+      bol: { type: 'boolean' }
     })
 
     expect(Model.meta.attributeDefinition).toEqual({})

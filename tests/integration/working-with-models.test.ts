@@ -254,6 +254,18 @@ describe('Working with models', () => {
     return Cat.adapter.destroy()
   })
 
+  test('Statically create a single record: defaults used', async () => {
+    class Cat extends Model {
+      @type('string', { default: 'Toffee' })
+      name: string
+    }
+    setupModel(Cat)
+    const cat = await Cat.createOne({})
+    expect(cat.id).toBeTruthy()
+    expect(cat.name).toBe('Toffee')
+    return Cat.adapter.destroy()
+  })
+
   test('Statically create multiple records', async () => {
     class Cat extends Model {
       @type('string') name: string
@@ -264,6 +276,20 @@ describe('Working with models', () => {
       { name: "Patches O'Hoolihan" }
     ])
     expect(cats).toBe(2)
+    return Cat.adapter.destroy()
+  })
+
+  test('Statically create multiple records: defaults used', async () => {
+    class Cat extends Model {
+      @type('string', { default: 'Colonel McFluffins' })
+      name: string
+    }
+    setupModel(Cat)
+    const num = await Cat.createSome([{}, { name: 'Dog' }])
+    expect(num).toBe(2)
+    const cats = await Cat.all()
+    expect(cats[2].name).toBe('Colonel McFluffins')
+    expect(cats[3].name).toBe('Dog')
     return Cat.adapter.destroy()
   })
 })

@@ -36,16 +36,16 @@ export default class Model extends Base {
           return that[name]
         }
         if (
-          typeof that.state[name] === 'undefined' ||
-          that.state[name] === null
+          typeof target.state[name] === 'undefined' ||
+          target.state[name] === null
         ) {
           return null
         }
-        return Ctor.runTypeHook(name, that.state[name], 'access')
+        return Ctor.runTypeHook(name, target.state[name], 'access')
       },
       set(target, name, value) {
         if (Ctor.meta.attributes[name]) {
-          that.state[name] = Ctor.runTypeHook(name, value, 'modify')
+          target.state[name] = Ctor.runTypeHook(name, value, 'modify')
         }
         that[name] = value
         return true
@@ -109,7 +109,7 @@ export default class Model extends Base {
 
   static attachTypes(types: { [name: string]: Type }) {
     Object.keys(this.meta.attributeDefinition).forEach(attr => {
-      let typeName = this.meta.attributeDefinition[attr]
+      let typeName = this.meta.attributeDefinition[attr].type
       if (types[`${this.modelName}:${typeName}`]) {
         typeName = `${this.modelName}:${typeName}`
       }
@@ -123,7 +123,7 @@ export default class Model extends Base {
     serializers: { default: Serializer; [name: string]: Serializer }
   ) {
     if (!this.meta.attributeDefinition[this.idField]) {
-      this.meta.attributeDefinition[this.idField] = 'number'
+      this.meta.attributeDefinition[this.idField] = { type: 'number' }
     }
     this.attachAdapters(adapters)
     this.attachSerializers(serializers)
@@ -182,7 +182,8 @@ export default class Model extends Base {
   ): Promise<T['prototype'] | null> {
     const result = await this.adapter.oneById(this, id, options)
     if (!result) return null
-    return this.hydrate(result)
+    const instance = this.hydrate(result)
+    return instance
   }
 
   static async oneBySql<T extends typeof Model>(
@@ -235,21 +236,28 @@ export default class Model extends Base {
     for (const prop of Reflect.ownKeys(props)) {
       if (!Reflect.ownKeys(this.meta.attributes).includes(prop)) {
         throw new Error(`
-          Invalid key '${prop}' defined on 'props' given to 'Model.createOne'.
-            Included properties must be defined on model class
-            Valid properties '${Reflect.ownKeys(this.meta.attributes).join(
-              "', '"
-            )}'
-            Instead got '${Reflect.ownKeys(props).join("', '")}'
+        Invalid key '${prop}' defined on 'props' given to 'Model.createOne'.
+        Included properties must be defined on model class
+        Valid properties '${Reflect.ownKeys(this.meta.attributes).join("', '")}'
+        Instead got '${Reflect.ownKeys(props).join("', '")}'
         `)
       }
     }
-    const result = await this.adapter.createRecord(this, props)
+    const defaults: props = {}
+    for (const [key, value] of Object.entries(this.meta.attributeDefinition)) {
+      if (value && value.default) {
+        defaults[key] = value.default
+      }
+    }
+    const data = Object.assign({}, defaults, props)
+    const result = await this.adapter.createRecord(this, data)
     return this.hydrate(result)
   }
 
   static async createSome(records: props[]): Promise<number> {
-    for (const [index, props] of records.entries()) {
+    // TODO:: clean up code method body as currently both poor readability
+    // and looping through the data 2 times
+    for (let [index, props] of records.entries()) {
       for (const prop of Reflect.ownKeys(props)) {
         if (!Reflect.ownKeys(this.meta.attributes).includes(prop)) {
           throw new Error(`
@@ -263,7 +271,20 @@ export default class Model extends Base {
         }
       }
     }
-    return this.adapter.createSome(this, records)
+    return this.adapter.createSome(
+      this,
+      records.map(record => {
+        const defaults: props = {}
+        for (const [key, value] of Object.entries(
+          this.meta.attributeDefinition
+        )) {
+          if (value && value.default) {
+            defaults[key] = value.default
+          }
+        }
+        return Object.assign({}, defaults, record)
+      })
+    )
   }
 
   static deleteAll(): Promise<number> {
@@ -453,8 +474,8 @@ export default class Model extends Base {
     const json: { [key: string]: any } = {}
     const { attributes } = this.ctor.meta
     for (const [property, type] of Object.entries(attributes)) {
-      if (attributes[property] && this[property]) {
-        json[property] = type.access(this[property])
+      if (attributes[property] && this.state[property]) {
+        json[property] = type.access(this.state[property])
       }
     }
     return json
@@ -526,7 +547,9 @@ export type relationship = {
 }
 
 export type modelMeta = {
-  attributeDefinition: { [attrName: string]: string }
+  attributeDefinition: {
+    [attrName: string]: { type: string; default?: string }
+  }
   attributes: { [attrName: string]: Type }
   relationships: { [relName: string]: relationship }
 }
