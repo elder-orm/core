@@ -109,4 +109,161 @@ describe('Working with models', () => {
     }
     throw new Error('cat.del() should have thrown but did not')
   })
+
+  test('Performing a bulk delete of all records', async () => {
+    class Cat extends Model {
+      @type('string') name: string
+    }
+    setupModel(Cat)
+    const num = await Cat.deleteAll()
+    const cats = await Cat.all()
+    expect(num).toBe(2)
+    expect(cats.length).toBe(0)
+    return Cat.adapter.destroy()
+  })
+
+  test('Performing a truncation of all records', async () => {
+    class Cat extends Model {
+      @type('string') name: string
+    }
+    setupModel(Cat)
+    await Cat.truncate()
+    const cats = await Cat.all()
+    expect(cats.length).toBe(0)
+    return Cat.adapter.destroy()
+  })
+
+  test('Performing a bulk delete of some records', async () => {
+    class Cat extends Model {
+      @type('string') name: string
+    }
+    setupModel(Cat)
+    await Cat.deleteSome({ name: 'Fluffy' })
+    const cat = await Cat.one({ name: 'Fluffy' })
+    expect(cat).toBe(null)
+    return Cat.adapter.destroy()
+  })
+
+  test('Performing a bulk delete of some records, bad params throws error', async () => {
+    class Cat extends Model {
+      @type('string') name: string
+    }
+    setupModel(Cat)
+    try {
+      await Cat.deleteSome({ age: 13 })
+    } catch (e) {
+      return Cat.adapter.destroy()
+    }
+    throw new Error('cat.del() should have thrown but did not')
+  })
+
+  test('Performing a delete of one record', async () => {
+    class Cat extends Model {
+      @type('string') name: string
+    }
+    setupModel(Cat)
+    await Cat.deleteOne({ name: 'Fluffy' })
+    const cat = await Cat.one({ name: 'Fluffy' })
+    expect(cat).toBe(null)
+    return Cat.adapter.destroy()
+  })
+
+  test('Performing a delete of one record by id', async () => {
+    class Cat extends Model {
+      @type('string') name: string
+    }
+    setupModel(Cat)
+    await Cat.deleteOneById(1)
+    const cat = await Cat.one({ name: 'Fluffy' })
+    expect(cat).toBe(null)
+    return Cat.adapter.destroy()
+  })
+
+  test('Performing a count of records', async () => {
+    class Cat extends Model {
+      @type('string') name: string
+    }
+    setupModel(Cat)
+    const count = await Cat.countAll()
+    expect(count).toBe(2)
+    return Cat.adapter.destroy()
+  })
+
+  test('Performing a filtered count of records', async () => {
+    class Cat extends Model {
+      @type('string') name: string
+    }
+    setupModel(Cat)
+    const count = await Cat.countSome({ name: 'Fluffy' })
+    expect(count).toBe(1)
+    return Cat.adapter.destroy()
+  })
+
+  test('Performing a bulk update of all records', async () => {
+    class Cat extends Model {
+      @type('string') name: string
+    }
+    setupModel(Cat)
+    await Cat.updateAll({ name: 'Wiffle' })
+    const num = await Cat.countSome({ name: 'Wiffle' })
+    expect(num).toBe(2)
+    return Cat.adapter.destroy()
+  })
+
+  test('Performing a bulk update of some records', async () => {
+    class Cat extends Model {
+      @type('string') name: string
+    }
+    setupModel(Cat)
+    await Cat.updateSome({ name: 'Fluffy' }, { name: 'James Turner' })
+    const num = await Cat.countSome({ name: 'James Turner' })
+    expect(num).toBe(1)
+    return Cat.adapter.destroy()
+  })
+
+  test('Performing an update of a single record by id', async () => {
+    class Cat extends Model {
+      @type('string') name: string
+    }
+    setupModel(Cat)
+    await Cat.updateOneById(1, { name: 'James Turner' })
+    const num = await Cat.countSome({ name: 'James Turner' })
+    expect(num).toBe(1)
+    return Cat.adapter.destroy()
+  })
+
+  test('Performing an update of a single record', async () => {
+    class Cat extends Model {
+      @type('string') name: string
+    }
+    setupModel(Cat)
+    await Cat.updateOne({ name: 'Fluffy' }, { name: 'James Turner' })
+    const num = await Cat.countSome({ name: 'James Turner' })
+    expect(num).toBe(1)
+    return Cat.adapter.destroy()
+  })
+
+  test('Statically create a single record', async () => {
+    class Cat extends Model {
+      @type('string') name: string
+    }
+    setupModel(Cat)
+    const cat = await Cat.createOne({ name: 'Boots McWhitestripes' })
+    expect(cat.id).toBeTruthy()
+    expect(cat.name).toBe('Boots McWhitestripes')
+    return Cat.adapter.destroy()
+  })
+
+  test('Statically create multiple records', async () => {
+    class Cat extends Model {
+      @type('string') name: string
+    }
+    setupModel(Cat)
+    const cats = await Cat.createSome([
+      { name: 'Boots McWhitestripes' },
+      { name: "Patches O'Hoolihan" }
+    ])
+    expect(cats).toBe(2)
+    return Cat.adapter.destroy()
+  })
 })

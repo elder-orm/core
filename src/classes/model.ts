@@ -196,7 +196,7 @@ export default class Model extends Base {
     return this.hydrate(result)
   }
 
-  static async some<T extends Model>(
+  static async some<T extends typeof Model>(
     where: where,
     options?: optsMultiple
   ): Promise<Collection> {
@@ -205,7 +205,7 @@ export default class Model extends Base {
     return new Collection(...instances)
   }
 
-  static async someBySql<T extends Model>(
+  static async someBySql<T extends typeof Model>(
     sql: string,
     params?: string[] | number[],
     options?: optsMultiple
@@ -220,12 +220,190 @@ export default class Model extends Base {
     return new Collection(...instances)
   }
 
-  static async all<T extends Model>(
+  static async all<T extends typeof Model>(
     options?: optsMultiple
   ): Promise<Collection> {
     const results: any[] = await this.adapter.all(this, options)
     const instances: T[] = results.map(this.hydrate.bind(this))
     return new Collection(...instances)
+  }
+
+  static async createOne<T extends typeof Model>(
+    this: T,
+    props: props
+  ): Promise<T['prototype']> {
+    for (const prop of Reflect.ownKeys(props)) {
+      if (!Reflect.ownKeys(this.meta.attributes).includes(prop)) {
+        throw new Error(`
+          Invalid key '${prop}' defined on 'props' given to 'Model.createOne'.
+            Included properties must be defined on model class
+            Valid properties '${Reflect.ownKeys(this.meta.attributes).join(
+              "', '"
+            )}'
+            Instead got '${Reflect.ownKeys(props).join("', '")}'
+        `)
+      }
+    }
+    const result = await this.adapter.createRecord(this, props)
+    return this.hydrate(result)
+  }
+
+  static async createSome(records: props[]): Promise<number> {
+    for (const [index, props] of records.entries()) {
+      for (const prop of Reflect.ownKeys(props)) {
+        if (!Reflect.ownKeys(this.meta.attributes).includes(prop)) {
+          throw new Error(`
+            Invalid key '${prop}' defined for record at index '${index}' given to 'Model.createSome'.
+              Included properties must be defined on model class
+              Valid properties '${Reflect.ownKeys(this.meta.attributes).join(
+                "', '"
+              )}'
+              Instead got '${Reflect.ownKeys(props).join("', '")}'
+          `)
+        }
+      }
+    }
+    return this.adapter.createSome(this, records)
+  }
+
+  static deleteAll(): Promise<number> {
+    return this.adapter.deleteAll(this)
+  }
+
+  static deleteSome(where: props): Promise<number> {
+    for (const prop of Reflect.ownKeys(where)) {
+      if (!Reflect.ownKeys(this.meta.attributes).includes(prop)) {
+        throw new Error(`
+          Invalid key '${prop}' defined on 'where' given to 'Model.deleteSome'.
+            Included properties must be defined on model class
+            Valid properties '${Reflect.ownKeys(this.meta.attributes).join(
+              "', '"
+            )}'
+            Instead got '${Reflect.ownKeys(where).join("', '")}'
+        `)
+      }
+    }
+    return this.adapter.deleteSome(this, where)
+  }
+
+  static deleteOne(where: props): Promise<number> {
+    for (const prop of Reflect.ownKeys(where)) {
+      if (!Reflect.ownKeys(this.meta.attributes).includes(prop)) {
+        throw new Error(`
+          Invalid key '${prop}' defined on 'where' given to 'Model.deleteSome'.
+            Included properties must be defined on model class
+            Valid properties '${Reflect.ownKeys(this.meta.attributes).join(
+              "', '"
+            )}'
+            Instead got '${Reflect.ownKeys(where).join("', '")}'
+        `)
+      }
+    }
+    return this.adapter.deleteOne(this, where)
+  }
+
+  static deleteOneById(id: number): Promise<number> {
+    return this.adapter.deleteOneById(this, id)
+  }
+
+  static updateAll(props: props): Promise<number> {
+    for (const prop of Reflect.ownKeys(props)) {
+      if (!Reflect.ownKeys(this.meta.attributes).includes(prop)) {
+        throw new Error(`
+          Invalid key '${prop}' defined on 'props' given to 'Model.updateAll'.
+            Included properties must be defined on model class
+            Valid properties '${Reflect.ownKeys(this.meta.attributes).join(
+              "', '"
+            )}'
+            Instead got '${Reflect.ownKeys(props).join("', '")}'
+        `)
+      }
+    }
+    return this.adapter.updateAll(this, props)
+  }
+
+  static updateSome(where: props, props: props): Promise<number> {
+    for (const prop of Reflect.ownKeys(where)) {
+      if (!Reflect.ownKeys(this.meta.attributes).includes(prop)) {
+        throw new Error(`
+          Invalid key '${prop}' defined on 'where' given to 'Model.updateSome'.
+            Included properties must be defined on model class
+            Valid properties '${Reflect.ownKeys(this.meta.attributes).join(
+              "', '"
+            )}'
+            Instead got '${Reflect.ownKeys(where).join("', '")}'
+        `)
+      }
+    }
+    for (const prop of Reflect.ownKeys(props)) {
+      if (!Reflect.ownKeys(this.meta.attributes).includes(prop)) {
+        throw new Error(`
+          Invalid key '${prop}' defined on 'props' given to 'Model.updateSome'.
+            Included properties to update must be defined on model class
+            Valid properties '${Reflect.ownKeys(this.meta.attributes).join(
+              "', '"
+            )}'
+            Instead got '${Reflect.ownKeys(props).join("', '")}'
+        `)
+      }
+    }
+    return this.adapter.updateSome(this, where, props)
+  }
+
+  static updateOneById(id: number, props: props): Promise<number> {
+    for (const prop of Reflect.ownKeys(props)) {
+      if (!Reflect.ownKeys(this.meta.attributes).includes(prop)) {
+        throw new Error(`
+          Invalid key '${prop}' defined on 'props' given to 'Model.updateAll'.
+            Included properties must be defined on model class
+            Valid properties '${Reflect.ownKeys(this.meta.attributes).join(
+              "', '"
+            )}'
+            Instead got '${Reflect.ownKeys(props).join("', '")}'
+        `)
+      }
+    }
+    return this.adapter.updateOneById(this, id, props)
+  }
+
+  static updateOne(where: props, props: props): Promise<number> {
+    for (const prop of Reflect.ownKeys(where)) {
+      if (!Reflect.ownKeys(this.meta.attributes).includes(prop)) {
+        throw new Error(`
+          Invalid key '${prop}' defined on 'where' given to 'Model.updateSome'.
+            Included properties must be defined on model class
+            Valid properties '${Reflect.ownKeys(this.meta.attributes).join(
+              "', '"
+            )}'
+            Instead got '${Reflect.ownKeys(where).join("', '")}'
+        `)
+      }
+    }
+    for (const prop of Reflect.ownKeys(props)) {
+      if (!Reflect.ownKeys(this.meta.attributes).includes(prop)) {
+        throw new Error(`
+          Invalid key '${prop}' defined on 'props' given to 'Model.updateSome'.
+            Included properties to update must be defined on model class
+            Valid properties '${Reflect.ownKeys(this.meta.attributes).join(
+              "', '"
+            )}'
+            Instead got '${Reflect.ownKeys(props).join("', '")}'
+        `)
+      }
+    }
+    return this.adapter.updateOne(this, where, props)
+  }
+
+  static truncate(): Promise<void> {
+    return this.adapter.truncate(this)
+  }
+
+  static countAll(): Promise<number> {
+    return this.adapter.countAll(this)
+  }
+
+  static countSome(where: props): Promise<number> {
+    return this.adapter.countSome(this, where)
   }
 
   rehydrate(props: props): void {

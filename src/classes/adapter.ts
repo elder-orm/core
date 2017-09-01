@@ -27,6 +27,7 @@ export type optsSingle = {
 }
 
 export type where = { [key: string]: any } | Array<any>
+export type props = { [key: string]: any }
 
 function sanitize(
   Ctor: typeof Model,
@@ -278,6 +279,15 @@ export default class Adapter {
     return clone(result[0])
   }
 
+  async createSome(Ctor: typeof Model, records: pojo[]): Promise<number> {
+    const result = await this.knex
+      .insert(records)
+      .into(Ctor.tableName)
+      .returning(Ctor.idField)
+
+    return result.length
+  }
+
   async updateRecord(
     Ctor: typeof Model,
     key: string | number,
@@ -295,6 +305,86 @@ export default class Adapter {
   async deleteRecord(Ctor: typeof Model, key: string | number): Promise<void> {
     const idField: string = Ctor.idField
     await this.knex(Ctor.tableName).delete().where(idField, key)
+  }
+
+  async deleteAll(Ctor: typeof Model): Promise<number> {
+    const deleted: number = await this.knex(Ctor.tableName).delete()
+    return deleted
+  }
+
+  async deleteSome(Ctor: typeof Model, where: where): Promise<number> {
+    const deleted: number = await this.knex(Ctor.tableName)
+      .delete()
+      .where(where)
+    return deleted
+  }
+
+  async deleteOne(Ctor: typeof Model, where: where): Promise<number> {
+    const deleted: number = await this.knex(Ctor.tableName)
+      .delete()
+      .where(where)
+      .limit(1)
+    return deleted
+  }
+
+  async deleteOneById(Ctor: typeof Model, id: number): Promise<number> {
+    const deleted: number = await this.knex(Ctor.tableName)
+      .delete()
+      .where(Ctor.idField, id)
+    return deleted
+  }
+
+  async updateAll(Ctor: typeof Model, props: props): Promise<number> {
+    const updated: number = await this.knex(Ctor.tableName).update(props)
+    return updated
+  }
+
+  async updateSome(
+    Ctor: typeof Model,
+    where: where,
+    props: props
+  ): Promise<number> {
+    const updated: number = await this.knex(Ctor.tableName)
+      .update(props)
+      .where(where)
+    return updated
+  }
+
+  async updateOneById(
+    Ctor: typeof Model,
+    id: number,
+    props: props
+  ): Promise<number> {
+    const updated: number = await this.knex(Ctor.tableName)
+      .update(props)
+      .where(Ctor.idField, id)
+    return updated
+  }
+
+  async updateOne(
+    Ctor: typeof Model,
+    where: where,
+    props: props
+  ): Promise<number> {
+    const updated: number = await this.knex(Ctor.tableName)
+      .update(props)
+      .where(where)
+      .limit(1)
+    return updated
+  }
+
+  async truncate(Ctor: typeof Model): Promise<void> {
+    return this.knex(Ctor.tableName).truncate()
+  }
+
+  async countAll(Ctor: typeof Model): Promise<number> {
+    const result = await this.knex(Ctor.tableName).count()
+    return Number(result[0].count)
+  }
+
+  async countSome(Ctor: typeof Model, where: where): Promise<number> {
+    const result = await this.knex(Ctor.tableName).where(where).count()
+    return Number(result[0].count)
   }
 
   destroy(): Promise<void> {
