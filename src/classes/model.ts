@@ -5,6 +5,8 @@ import Base from './base'
 import Collection from './collection'
 import { pluralize, singularize, dasherize, underscore } from 'inflection'
 
+const state = new WeakMap()
+
 export default class Model extends Base {
   static idField: string = 'id'
   static adapter: Adapter
@@ -19,10 +21,9 @@ export default class Model extends Base {
   static _plural: string
   id: number
 
-  private state: props = {}
-
   constructor(props: { [prop: string]: any } = {}) {
     super()
+    state.set(this, {})
     if (Reflect.ownKeys(props).length) {
       this.populate(props)
     }
@@ -83,12 +84,28 @@ export default class Model extends Base {
   }
 
   static attachTypes(types: { [name: string]: Type }) {
+    const Ctor = this
     Object.keys(this.meta.attributeDefinition).forEach(attr => {
       let typeName = this.meta.attributeDefinition[attr].type
       if (types[`${this.modelName}:${typeName}`]) {
         typeName = `${this.modelName}:${typeName}`
       }
       this.meta.attributes[attr] = types[typeName]
+      Reflect.defineProperty(this.prototype, attr, {
+        get() {
+          if (
+            typeof state.get(this)[attr] === 'undefined' ||
+            state.get(this)[attr] === null
+          ) {
+            return null
+          }
+          return Ctor.runTypeHook(attr, state.get(this)[attr], 'access')
+        },
+        set(value) {
+          state.get(this)[attr] = Ctor.runTypeHook(attr, value, 'modify')
+          return true
+        }
+      })
     })
   }
 
@@ -440,13 +457,13 @@ export default class Model extends Base {
 
   dehydrate(): props {
     return this.ctor.runTypeHooks(
-      this.ctor.runTypeHooks(this.state, 'access'),
+      this.ctor.runTypeHooks(state.get(this), 'access'),
       'store'
     )
   }
 
   populate(props: props): void {
-    this.state = this.ctor.runTypeHooks(props, 'modify')
+    state.set(this, this.ctor.runTypeHooks(props, 'modify'))
   }
 
   get adapter(): Adapter {
@@ -480,9 +497,9 @@ export default class Model extends Base {
   toJSON(this: { [key: string]: any }): { [key: string]: any } {
     const json: { [key: string]: any } = {}
     const { attributes } = this.ctor.meta
-    for (const [property, type] of Object.entries(attributes)) {
-      if (attributes[property] && this.state[property]) {
-        json[property] = type.access(this.state[property])
+    for (const [property] of Object.entries(attributes)) {
+      if (attributes[property] && this[property]) {
+        json[property] = this[property]
       }
     }
     return json
@@ -491,10 +508,10 @@ export default class Model extends Base {
   async save(): Promise<void> {
     const Ctor = this.constructor as typeof Model
     let result
-    if (!this.state.id) {
+    if (!state.get(this).id) {
       result = await Ctor.adapter.createRecord(Ctor, this.dehydrate())
     } else {
-      const id = this.state[this.ctor.idField]
+      const id = state.get(this)[this.ctor.idField]
       result = await Ctor.adapter.updateRecord(Ctor, id, this.dehydrate())
     }
     this.rehydrate(result)
@@ -502,25 +519,25 @@ export default class Model extends Base {
 
   async del(): Promise<void> {
     const Ctor = this.constructor as typeof Model
-    if (!this.state[Ctor.idField]) {
+    if (!state.get(this)[Ctor.idField]) {
       throw new Error(
         `Unable to delete record for model '${Ctor.name}'.
           Expected '${Ctor.idField}' field to contain a value but was empty`
       )
     }
-    const id = this.state[this.ctor.idField]
+    const id = state.get(this)[this.ctor.idField]
     return Ctor.adapter.deleteRecord(Ctor, id)
   }
 
   toString() {
-    let state: string = '{'
+    let stateStr: string = '{'
     const keyValueStrings: string[] = []
-    for (const [key, value] of Object.entries(this.state)) {
+    for (const [key, value] of Object.entries(state.get(this))) {
       keyValueStrings.push(`${key}: '${value}'`)
     }
-    state += keyValueStrings.join(', ')
-    state += '}'
-    return `${this.ctor.name} ${state}`
+    stateStr += keyValueStrings.join(', ')
+    stateStr += '}'
+    return `${this.ctor.name} ${stateStr}`
   }
 }
 
