@@ -264,8 +264,6 @@ export default class Model extends Base {
   }
 
   static async createSome(records: props[]): Promise<number> {
-    // TODO:: clean up code method body as currently both poor readability
-    // and looping through the data 2 times
     for (let [index, props] of records.entries()) {
       for (const prop of Reflect.ownKeys(props)) {
         if (!Reflect.ownKeys(this.meta.attributes).includes(prop)) {
