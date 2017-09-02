@@ -17,9 +17,9 @@ export default class Model extends Base {
   static _tableName: string
   static _modelName: string
   static _plural: string
-  state: props = {}
-
   id: number
+
+  private state: props = {}
 
   constructor(props: { [prop: string]: any } = {}) {
     super()

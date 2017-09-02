@@ -39,7 +39,7 @@ describe('Models', () => {
     const cat = Cat.create()
     cat.rehydrate({ fizz: 'buzz' })
 
-    expect(cat.state.fizz).toBe('buzz')
+    expect(cat.fizz).toBe('buzz')
     return Cat.adapter.destroy()
   })
 
@@ -49,7 +49,7 @@ describe('Models', () => {
     }
     setupModel(Cat)
     const cat = Cat.create()
-    cat.state.fizz = 'buzz'
+    cat.fizz = 'buzz'
     const result = cat.dehydrate()
 
     expect(result.fizz).toBe('buzz')
@@ -107,8 +107,7 @@ describe('Models', () => {
     setupModel(Cat)
     const cat = Cat.create()
     cat.populate({ fizz: 'buzz', fake: 'prop', id: 1 })
-
-    expect(cat.state).toEqual({ fizz: 'buzz', id: 1 })
+    expect(cat.toJSON()).toEqual({ fizz: 'buzz', id: 1 })
     return Cat.adapter.destroy()
   })
 
