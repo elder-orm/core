@@ -254,4 +254,16 @@ describe('Models', () => {
     expect(cat.toString()).toBe(`Cat {fizz: 'buzz'}`)
     return Cat.adapter.destroy()
   })
+
+  test('define property setup performed', () => {
+    class Cat extends Model {
+      @type('string') str: string
+    }
+    setupModel(Cat)
+    const cat = Cat.create()
+    expect(cat.str).toBe(null)
+    cat.str = 'hello'
+    expect(cat.str).toBe('hello')
+    return Cat.adapter.destroy()
+  })
 })

@@ -23,34 +23,9 @@ export default class Model extends Base {
 
   constructor(props: { [prop: string]: any } = {}) {
     super()
-    const Ctor = this.constructor as typeof Model
-    const that: { [key: string]: any } = this
-
     if (Reflect.ownKeys(props).length) {
-      that.populate(props)
+      this.populate(props)
     }
-
-    return new Proxy(this, {
-      get(target, name): any {
-        if (!Reflect.ownKeys(Ctor.meta.attributes).includes(name)) {
-          return that[name]
-        }
-        if (
-          typeof target.state[name] === 'undefined' ||
-          target.state[name] === null
-        ) {
-          return null
-        }
-        return Ctor.runTypeHook(name, target.state[name], 'access')
-      },
-      set(target, name, value) {
-        if (Ctor.meta.attributes[name]) {
-          target.state[name] = Ctor.runTypeHook(name, value, 'modify')
-        }
-        that[name] = value
-        return true
-      }
-    })
   }
 
   static hydrate<T extends typeof Model>(
@@ -117,17 +92,51 @@ export default class Model extends Base {
     })
   }
 
+  static defineId() {
+    const Ctor = this
+    Reflect.defineProperty(this.prototype, Ctor.idField, {
+      get() {
+        const that: any = this
+        if (
+          typeof that.state[Ctor.idField] === 'undefined' ||
+          that.state[Ctor.idField] === null
+        ) {
+          return null
+        }
+        return Ctor.runTypeHook(
+          Ctor.idField,
+          that.state[Ctor.idField],
+          'access'
+        )
+      },
+      set(value) {
+        const that: any = this
+        that.state[Ctor.idField] = Ctor.runTypeHook(
+          Ctor.idField,
+          value,
+          'modify'
+        )
+        return true
+      }
+    })
+  }
+
   static setup(
     types: { [name: string]: Type },
     adapters: { default: Adapter; [name: string]: Adapter },
     serializers: { default: Serializer; [name: string]: Serializer }
   ) {
+    let needsIdDefinition = false
     if (!this.meta.attributeDefinition[this.idField]) {
       this.meta.attributeDefinition[this.idField] = { type: 'number' }
+      needsIdDefinition = true
     }
     this.attachAdapters(adapters)
     this.attachSerializers(serializers)
     this.attachTypes(types)
+    if (needsIdDefinition) {
+      this.defineId()
+    }
   }
 
   static get plural(): string {

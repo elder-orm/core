@@ -36,5 +36,23 @@ export default function type(
     if (options && options.default) {
       Ctor.meta.attributeDefinition[propertyKey].default = options.default
     }
+
+    Reflect.defineProperty(target, propertyKey, {
+      get() {
+        const that: any = this
+        if (
+          typeof that.state[propertyKey] === 'undefined' ||
+          that.state[propertyKey] === null
+        ) {
+          return null
+        }
+        return Ctor.runTypeHook(propertyKey, that.state[propertyKey], 'access')
+      },
+      set(value) {
+        const that: any = this
+        that.state[propertyKey] = Ctor.runTypeHook(propertyKey, value, 'modify')
+        return true
+      }
+    })
   }
 }

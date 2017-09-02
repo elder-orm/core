@@ -90,4 +90,21 @@ describe('Defining models', () => {
     expect(dogs.serialize()).toEqual([{ name: 'Fido' }])
     return orm.destroy()
   })
+
+  test('Defining id explicitly', async () => {
+    class Cat extends Model {
+      @type('number') id: number
+      @type('string') name: string
+    }
+    class CatName extends StringType {}
+    const orm = Elder.create({
+      config,
+      models: { cat: Cat }
+    })
+    const cat = Cat.create()
+    expect(cat.id).toBe(null)
+    cat.id = 2
+    expect(cat.id).toBe(2)
+    return orm.destroy()
+  })
 })
