@@ -19,4 +19,14 @@ describe('@type() decorator', () => {
 
     expect(Model.meta.attributeDefinition).toEqual({})
   })
+
+  test('errors if default value for property is used', () => {
+    const subject = () => {
+      class Cat extends Model {
+        @type('string') str: string = 'a default'
+      }
+    }
+
+    expect(subject).toThrow()
+  })
 })
