@@ -11,12 +11,22 @@ describe('@type() decorator', () => {
     }
 
     expect(Cat.meta.attributeDefinition).toEqual({
-      str: 'string',
-      num: 'number',
-      dat: 'date',
-      bol: 'boolean'
+      str: { type: 'string' },
+      num: { type: 'number' },
+      dat: { type: 'date' },
+      bol: { type: 'boolean' }
     })
 
     expect(Model.meta.attributeDefinition).toEqual({})
+  })
+
+  test('errors if default value for property is used', () => {
+    const subject = () => {
+      class Cat extends Model {
+        @type('string') str: string = 'a default'
+      }
+    }
+
+    expect(subject).toThrow()
   })
 })

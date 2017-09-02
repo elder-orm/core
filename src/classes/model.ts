@@ -5,6 +5,8 @@ import Base from './base'
 import Collection from './collection'
 import { pluralize, singularize, dasherize, underscore } from 'inflection'
 
+const state = new WeakMap()
+
 export default class Model extends Base {
   static idField: string = 'id'
   static adapter: Adapter
@@ -17,40 +19,14 @@ export default class Model extends Base {
   static _tableName: string
   static _modelName: string
   static _plural: string
-  state: props = {}
-
   id: number
 
   constructor(props: { [prop: string]: any } = {}) {
     super()
-    const Ctor = this.constructor as typeof Model
-    const that: { [key: string]: any } = this
-
+    state.set(this, {})
     if (Reflect.ownKeys(props).length) {
-      that.populate(props)
+      this.populate(props)
     }
-
-    return new Proxy(this, {
-      get(target, name): any {
-        if (!Reflect.ownKeys(Ctor.meta.attributes).includes(name)) {
-          return that[name]
-        }
-        if (
-          typeof that.state[name] === 'undefined' ||
-          that.state[name] === null
-        ) {
-          return null
-        }
-        return Ctor.runTypeHook(name, that.state[name], 'access')
-      },
-      set(target, name, value) {
-        if (Ctor.meta.attributes[name]) {
-          that.state[name] = Ctor.runTypeHook(name, value, 'modify')
-        }
-        that[name] = value
-        return true
-      }
-    })
   }
 
   static hydrate<T extends typeof Model>(
@@ -108,12 +84,57 @@ export default class Model extends Base {
   }
 
   static attachTypes(types: { [name: string]: Type }) {
+    const Ctor = this
     Object.keys(this.meta.attributeDefinition).forEach(attr => {
-      let typeName = this.meta.attributeDefinition[attr]
+      let typeName = this.meta.attributeDefinition[attr].type
       if (types[`${this.modelName}:${typeName}`]) {
         typeName = `${this.modelName}:${typeName}`
       }
       this.meta.attributes[attr] = types[typeName]
+      Reflect.defineProperty(this.prototype, attr, {
+        get() {
+          if (
+            typeof state.get(this)[attr] === 'undefined' ||
+            state.get(this)[attr] === null
+          ) {
+            return null
+          }
+          return Ctor.runTypeHook(attr, state.get(this)[attr], 'access')
+        },
+        set(value) {
+          state.get(this)[attr] = Ctor.runTypeHook(attr, value, 'modify')
+          return true
+        }
+      })
+    })
+  }
+
+  static defineId() {
+    const Ctor = this
+    Reflect.defineProperty(this.prototype, Ctor.idField, {
+      get() {
+        const that: any = this
+        if (
+          typeof that.state[Ctor.idField] === 'undefined' ||
+          that.state[Ctor.idField] === null
+        ) {
+          return null
+        }
+        return Ctor.runTypeHook(
+          Ctor.idField,
+          that.state[Ctor.idField],
+          'access'
+        )
+      },
+      set(value) {
+        const that: any = this
+        that.state[Ctor.idField] = Ctor.runTypeHook(
+          Ctor.idField,
+          value,
+          'modify'
+        )
+        return true
+      }
     })
   }
 
@@ -122,12 +143,17 @@ export default class Model extends Base {
     adapters: { default: Adapter; [name: string]: Adapter },
     serializers: { default: Serializer; [name: string]: Serializer }
   ) {
+    let needsIdDefinition = false
     if (!this.meta.attributeDefinition[this.idField]) {
-      this.meta.attributeDefinition[this.idField] = 'number'
+      this.meta.attributeDefinition[this.idField] = { type: 'number' }
+      needsIdDefinition = true
     }
     this.attachAdapters(adapters)
     this.attachSerializers(serializers)
     this.attachTypes(types)
+    if (needsIdDefinition) {
+      this.defineId()
+    }
   }
 
   static get plural(): string {
@@ -182,7 +208,8 @@ export default class Model extends Base {
   ): Promise<T['prototype'] | null> {
     const result = await this.adapter.oneById(this, id, options)
     if (!result) return null
-    return this.hydrate(result)
+    const instance = this.hydrate(result)
+    return instance
   }
 
   static async oneBySql<T extends typeof Model>(
@@ -235,21 +262,26 @@ export default class Model extends Base {
     for (const prop of Reflect.ownKeys(props)) {
       if (!Reflect.ownKeys(this.meta.attributes).includes(prop)) {
         throw new Error(`
-          Invalid key '${prop}' defined on 'props' given to 'Model.createOne'.
-            Included properties must be defined on model class
-            Valid properties '${Reflect.ownKeys(this.meta.attributes).join(
-              "', '"
-            )}'
-            Instead got '${Reflect.ownKeys(props).join("', '")}'
+        Invalid key '${prop}' defined on 'props' given to 'Model.createOne'.
+        Included properties must be defined on model class
+        Valid properties '${Reflect.ownKeys(this.meta.attributes).join("', '")}'
+        Instead got '${Reflect.ownKeys(props).join("', '")}'
         `)
       }
     }
-    const result = await this.adapter.createRecord(this, props)
+    const defaults: props = {}
+    for (const [key, value] of Object.entries(this.meta.attributeDefinition)) {
+      if (value && value.default) {
+        defaults[key] = value.default
+      }
+    }
+    const data = Object.assign({}, defaults, props)
+    const result = await this.adapter.createRecord(this, data)
     return this.hydrate(result)
   }
 
   static async createSome(records: props[]): Promise<number> {
-    for (const [index, props] of records.entries()) {
+    for (let [index, props] of records.entries()) {
       for (const prop of Reflect.ownKeys(props)) {
         if (!Reflect.ownKeys(this.meta.attributes).includes(prop)) {
           throw new Error(`
@@ -263,7 +295,20 @@ export default class Model extends Base {
         }
       }
     }
-    return this.adapter.createSome(this, records)
+    return this.adapter.createSome(
+      this,
+      records.map(record => {
+        const defaults: props = {}
+        for (const [key, value] of Object.entries(
+          this.meta.attributeDefinition
+        )) {
+          if (value && value.default) {
+            defaults[key] = value.default
+          }
+        }
+        return Object.assign({}, defaults, record)
+      })
+    )
   }
 
   static deleteAll(): Promise<number> {
@@ -412,13 +457,13 @@ export default class Model extends Base {
 
   dehydrate(): props {
     return this.ctor.runTypeHooks(
-      this.ctor.runTypeHooks(this.state, 'access'),
+      this.ctor.runTypeHooks(state.get(this), 'access'),
       'store'
     )
   }
 
   populate(props: props): void {
-    this.state = this.ctor.runTypeHooks(props, 'modify')
+    state.set(this, this.ctor.runTypeHooks(props, 'modify'))
   }
 
   get adapter(): Adapter {
@@ -452,9 +497,9 @@ export default class Model extends Base {
   toJSON(this: { [key: string]: any }): { [key: string]: any } {
     const json: { [key: string]: any } = {}
     const { attributes } = this.ctor.meta
-    for (const [property, type] of Object.entries(attributes)) {
+    for (const [property] of Object.entries(attributes)) {
       if (attributes[property] && this[property]) {
-        json[property] = type.access(this[property])
+        json[property] = this[property]
       }
     }
     return json
@@ -463,10 +508,10 @@ export default class Model extends Base {
   async save(): Promise<void> {
     const Ctor = this.constructor as typeof Model
     let result
-    if (!this.state.id) {
+    if (!state.get(this).id) {
       result = await Ctor.adapter.createRecord(Ctor, this.dehydrate())
     } else {
-      const id = this.state[this.ctor.idField]
+      const id = state.get(this)[this.ctor.idField]
       result = await Ctor.adapter.updateRecord(Ctor, id, this.dehydrate())
     }
     this.rehydrate(result)
@@ -474,25 +519,25 @@ export default class Model extends Base {
 
   async del(): Promise<void> {
     const Ctor = this.constructor as typeof Model
-    if (!this.state[Ctor.idField]) {
+    if (!state.get(this)[Ctor.idField]) {
       throw new Error(
         `Unable to delete record for model '${Ctor.name}'.
           Expected '${Ctor.idField}' field to contain a value but was empty`
       )
     }
-    const id = this.state[this.ctor.idField]
+    const id = state.get(this)[this.ctor.idField]
     return Ctor.adapter.deleteRecord(Ctor, id)
   }
 
   toString() {
-    let state: string = '{'
+    let stateStr: string = '{'
     const keyValueStrings: string[] = []
-    for (const [key, value] of Object.entries(this.state)) {
+    for (const [key, value] of Object.entries(state.get(this))) {
       keyValueStrings.push(`${key}: '${value}'`)
     }
-    state += keyValueStrings.join(', ')
-    state += '}'
-    return `${this.ctor.name} ${state}`
+    stateStr += keyValueStrings.join(', ')
+    stateStr += '}'
+    return `${this.ctor.name} ${stateStr}`
   }
 }
 
@@ -526,7 +571,9 @@ export type relationship = {
 }
 
 export type modelMeta = {
-  attributeDefinition: { [attrName: string]: string }
+  attributeDefinition: {
+    [attrName: string]: { type: string; default?: string }
+  }
   attributes: { [attrName: string]: Type }
   relationships: { [relName: string]: relationship }
 }
