@@ -1,7 +1,7 @@
 import Elder, {
   StringType,
   NumberType,
-  PostgresAdapter,
+  Adapter,
   Serializer,
   Model,
   type
@@ -10,7 +10,7 @@ const config = { adapters: { default: { database: 'ash' } } }
 const adapterConfig = config.adapters.default
 
 function setupModel(Ctor: typeof Model) {
-  const adapter = PostgresAdapter.create(adapterConfig)
+  const adapter = Adapter.create(adapterConfig)
   const serializer = Serializer.create()
   Ctor.setup(
     { string: new StringType(), number: new NumberType() },
@@ -239,7 +239,7 @@ describe('Models', () => {
     setupModel(Cat)
     const cat = Cat.create()
 
-    expect(cat.adapter).toBeInstanceOf(PostgresAdapter)
+    expect(cat.adapter).toBeInstanceOf(Adapter)
     return Cat.adapter.destroy()
   })
 

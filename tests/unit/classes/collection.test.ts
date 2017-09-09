@@ -1,5 +1,24 @@
-import Elder, { Serializer, Model, type, Collection } from '../../../src'
+import Elder, {
+  Serializer,
+  Model,
+  type,
+  Collection,
+  Adapter,
+  StringType,
+  NumberType
+} from '../../../src'
 const config = { adapters: { default: { database: 'ash' } } }
+const adapterConfig = config.adapters.default
+
+function setupModel(Ctor: typeof Model) {
+  const adapter = Adapter.create(adapterConfig)
+  const serializer = Serializer.create()
+  Ctor.setup(
+    { string: new StringType(), number: new NumberType() },
+    { default: adapter },
+    { default: serializer }
+  )
+}
 
 describe('Collection', () => {
   test('converting to pojo', () => {
@@ -18,13 +37,12 @@ describe('Collection', () => {
     class Cat extends Model {
       @type('string') fizz: string
     }
-    const orm = Elder.create({ config, models: { cat: Cat } })
+    setupModel(Cat)
     const payload = Cat.create({ fizz: 'buzz' })
     const collection = new Collection(payload)
 
     const result = collection.serialize()
 
     expect(result).toEqual([{ fizz: 'buzz' }])
-    return orm.destroy()
   })
 })
