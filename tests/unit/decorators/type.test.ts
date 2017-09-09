@@ -29,4 +29,26 @@ describe('@type() decorator', () => {
 
     expect(subject).toThrow()
   })
+
+  test('decorators passing options', () => {
+    class Cat extends Model {
+      @type('string', { foo: 'bar' })
+      str: string
+      @type('number', { foo: 'bar' })
+      num: string
+      @type('date', { foo: 'bar' })
+      dat: string
+      @type('boolean', { foo: 'bar' })
+      bol: string
+    }
+
+    expect(Cat.meta.attributeDefinition).toEqual({
+      str: { type: 'string', foo: 'bar' },
+      num: { type: 'number', foo: 'bar' },
+      dat: { type: 'date', foo: 'bar' },
+      bol: { type: 'boolean', foo: 'bar' }
+    })
+
+    expect(Model.meta.attributeDefinition).toEqual({})
+  })
 })

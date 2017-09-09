@@ -32,9 +32,10 @@ export default function type(
       })
     }
 
-    Ctor.meta.attributeDefinition[propertyKey] = { type: typeName }
-    if (options && options.default) {
-      Ctor.meta.attributeDefinition[propertyKey].default = options.default
+    const defn = Ctor.meta.attributeDefinition
+    defn[propertyKey] = { type: typeName }
+    if (options) {
+      defn[propertyKey] = Object.assign({}, defn[propertyKey], options)
     }
   }
 }
