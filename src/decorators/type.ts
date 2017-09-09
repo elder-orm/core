@@ -20,21 +20,27 @@ export default function type(
       `)
     }
 
-    const meta = {
-      attributeDefinition: {},
-      attributes: {},
-      relationships: {}
-    }
-
     if (!Reflect.ownKeys(Ctor).includes('meta')) {
       Reflect.defineProperty(Ctor, 'meta', {
-        value: meta
+        value: {
+          attributes: {},
+          types: {},
+          relationships: {}
+        }
       })
     }
 
-    Ctor.meta.attributeDefinition[propertyKey] = { type: typeName }
-    if (options && options.default) {
-      Ctor.meta.attributeDefinition[propertyKey].default = options.default
+    if (options && options.type) {
+      throw new Error(`
+        Illegal use of reserved key 'type' in 'options' in decorator for property '${propertyKey}'.
+          Please rename 'type' in @type('${typeName}', { 'type': '${options.type}' })
+      `)
     }
+
+    Ctor.meta.attributes[propertyKey] = Object.assign(
+      {},
+      { type: typeName },
+      options || {}
+    )
   }
 }

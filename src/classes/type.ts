@@ -6,14 +6,14 @@ export interface IType {
    * Called when accessing a model's property. Can be used to convert the
    * property to another format though will often simply pass the value on
    */
-  access(value: any): any
+  access(value: any, options?: options): any
 
   /**
    * Called when modifying a model's property. Can be overridden in order to
    * throw TypeErrors when the given value is unacceptabe or to cast the given
    * value as appropriate
    */
-  modify(value: any): any
+  modify(value: any, options?: options): any
 
   /**
    * Called when the property value needs to be saved to the database.
@@ -35,7 +35,7 @@ export interface IType {
    * }
    * ```
    */
-  store(value: any): string
+  store(value: any, options?: options): string
 
   /**
    * Called when the value for the property has been retrieved from the database
@@ -56,7 +56,7 @@ export interface IType {
    * }
    * ```
    */
-  retrieve(value: string): any
+  retrieve(value: string, options?: options): any
 
   /**
    * Called by a models `validate` method which is itself called by the model's
@@ -90,7 +90,10 @@ export interface IType {
    * }
    * ```
    */
-  validate<T extends Error>(value: any): Promise<void | T> | void | T
+  validate<T extends Error>(
+    value: any,
+    options?: options
+  ): Promise<void | T> | void | T
 }
 
 /**
@@ -107,7 +110,7 @@ export default class Type implements IType {
    * Default implementation of type access.
    * Simply returns the value as is without modification.
    */
-  access(value: any): any {
+  access(value: any, options?: options): any {
     return value
   }
 
@@ -115,7 +118,7 @@ export default class Type implements IType {
    * Default implementation of type modification.
    * Simply returns the value as is without modification.
    */
-  modify(value: any): any {
+  modify(value: any, options?: options): any {
     return value
   }
 
@@ -123,7 +126,7 @@ export default class Type implements IType {
    * Default implementation of type storage.
    * Attempts to convert any value given to a string.
    */
-  store(value: any): string {
+  store(value: any, options?: options): string {
     return String(value)
   }
 
@@ -131,7 +134,7 @@ export default class Type implements IType {
    * Default implementation of type retrieval.
    * Simply returns the value as is without modification.
    */
-  retrieve(value: string): any {
+  retrieve(value: string, options?: options): any {
     return value
   }
 
@@ -139,5 +142,9 @@ export default class Type implements IType {
    * Default signature of type validation with no additional implemenation
    * details.
    */
-  validate(value: any): void {}
+  validate(value: any, options?: options): void {}
+}
+
+export type options = {
+  [key: string]: any
 }

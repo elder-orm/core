@@ -12,8 +12,8 @@ export default class Model extends Base {
   static adapter: Adapter
   static serializers: serializers
   static meta: modelMeta = {
-    attributeDefinition: {},
     attributes: {},
+    types: {},
     relationships: {}
   }
   static _tableName: string
@@ -37,24 +37,25 @@ export default class Model extends Base {
   }
 
   static runTypeHook(key: any, value: any, hook: typeHook): any {
-    const type: Type = this.meta.attributes[key]
+    const type: Type = this.meta.types[key]
+    const options = this.meta.attributes[key]
     switch (hook) {
       case 'access':
-        return type.access(value)
+        return type.access(value, options)
       case 'modify':
-        return type.modify(value)
+        return type.modify(value, options)
       case 'retrieve':
-        return type.retrieve(value)
+        return type.retrieve(value, options)
       case 'store':
-        return type.store(value)
+        return type.store(value, options)
       case 'validate':
-        return type.validate(value)
+        return type.validate(value, options)
     }
   }
 
   static runTypeHooks(props: props, hook: typeHook): props {
     const processed: props = {}
-    for (const attr of Reflect.ownKeys(this.meta.attributes)) {
+    for (const attr of Reflect.ownKeys(this.meta.types)) {
       if (typeof props[attr] === 'undefined' || props[attr] === null) continue
       processed[attr] = this.runTypeHook(attr, props[attr], hook)
     }
@@ -85,12 +86,12 @@ export default class Model extends Base {
 
   static attachTypes(types: { [name: string]: Type }) {
     const Ctor = this
-    Object.keys(this.meta.attributeDefinition).forEach(attr => {
-      let typeName = this.meta.attributeDefinition[attr].type
+    Object.keys(this.meta.attributes).forEach(attr => {
+      let typeName = this.meta.attributes[attr].type
       if (types[`${this.modelName}:${typeName}`]) {
         typeName = `${this.modelName}:${typeName}`
       }
-      this.meta.attributes[attr] = types[typeName]
+      this.meta.types[attr] = types[typeName]
       Reflect.defineProperty(this.prototype, attr, {
         get() {
           if (
@@ -144,8 +145,8 @@ export default class Model extends Base {
     serializers: { default: Serializer; [name: string]: Serializer }
   ) {
     let needsIdDefinition = false
-    if (!this.meta.attributeDefinition[this.idField]) {
-      this.meta.attributeDefinition[this.idField] = { type: 'number' }
+    if (!this.meta.attributes[this.idField]) {
+      this.meta.attributes[this.idField] = { type: 'number' }
       needsIdDefinition = true
     }
     this.attachAdapters(adapters)
@@ -260,17 +261,17 @@ export default class Model extends Base {
     props: props
   ): Promise<T['prototype']> {
     for (const prop of Reflect.ownKeys(props)) {
-      if (!Reflect.ownKeys(this.meta.attributes).includes(prop)) {
+      if (!Reflect.ownKeys(this.meta.types).includes(prop)) {
         throw new Error(`
         Invalid key '${prop}' defined on 'props' given to 'Model.createOne'.
         Included properties must be defined on model class
-        Valid properties '${Reflect.ownKeys(this.meta.attributes).join("', '")}'
+        Valid properties '${Reflect.ownKeys(this.meta.types).join("', '")}'
         Instead got '${Reflect.ownKeys(props).join("', '")}'
         `)
       }
     }
     const defaults: props = {}
-    for (const [key, value] of Object.entries(this.meta.attributeDefinition)) {
+    for (const [key, value] of Object.entries(this.meta.attributes)) {
       if (value && value.default) {
         defaults[key] = value.default
       }
@@ -283,11 +284,11 @@ export default class Model extends Base {
   static async createSome(records: props[]): Promise<number> {
     for (let [index, props] of records.entries()) {
       for (const prop of Reflect.ownKeys(props)) {
-        if (!Reflect.ownKeys(this.meta.attributes).includes(prop)) {
+        if (!Reflect.ownKeys(this.meta.types).includes(prop)) {
           throw new Error(`
             Invalid key '${prop}' defined for record at index '${index}' given to 'Model.createSome'.
               Included properties must be defined on model class
-              Valid properties '${Reflect.ownKeys(this.meta.attributes).join(
+              Valid properties '${Reflect.ownKeys(this.meta.types).join(
                 "', '"
               )}'
               Instead got '${Reflect.ownKeys(props).join("', '")}'
@@ -299,9 +300,7 @@ export default class Model extends Base {
       this,
       records.map(record => {
         const defaults: props = {}
-        for (const [key, value] of Object.entries(
-          this.meta.attributeDefinition
-        )) {
+        for (const [key, value] of Object.entries(this.meta.attributes)) {
           if (value && value.default) {
             defaults[key] = value.default
           }
@@ -317,13 +316,11 @@ export default class Model extends Base {
 
   static deleteSome(where: props): Promise<number> {
     for (const prop of Reflect.ownKeys(where)) {
-      if (!Reflect.ownKeys(this.meta.attributes).includes(prop)) {
+      if (!Reflect.ownKeys(this.meta.types).includes(prop)) {
         throw new Error(`
           Invalid key '${prop}' defined on 'where' given to 'Model.deleteSome'.
             Included properties must be defined on model class
-            Valid properties '${Reflect.ownKeys(this.meta.attributes).join(
-              "', '"
-            )}'
+            Valid properties '${Reflect.ownKeys(this.meta.types).join("', '")}'
             Instead got '${Reflect.ownKeys(where).join("', '")}'
         `)
       }
@@ -333,13 +330,11 @@ export default class Model extends Base {
 
   static deleteOne(where: props): Promise<number> {
     for (const prop of Reflect.ownKeys(where)) {
-      if (!Reflect.ownKeys(this.meta.attributes).includes(prop)) {
+      if (!Reflect.ownKeys(this.meta.types).includes(prop)) {
         throw new Error(`
           Invalid key '${prop}' defined on 'where' given to 'Model.deleteOne'.
             Included properties must be defined on model class
-            Valid properties '${Reflect.ownKeys(this.meta.attributes).join(
-              "', '"
-            )}'
+            Valid properties '${Reflect.ownKeys(this.meta.types).join("', '")}'
             Instead got '${Reflect.ownKeys(where).join("', '")}'
         `)
       }
@@ -353,13 +348,11 @@ export default class Model extends Base {
 
   static updateAll(props: props): Promise<number> {
     for (const prop of Reflect.ownKeys(props)) {
-      if (!Reflect.ownKeys(this.meta.attributes).includes(prop)) {
+      if (!Reflect.ownKeys(this.meta.types).includes(prop)) {
         throw new Error(`
           Invalid key '${prop}' defined on 'props' given to 'Model.updateAll'.
             Included properties must be defined on model class
-            Valid properties '${Reflect.ownKeys(this.meta.attributes).join(
-              "', '"
-            )}'
+            Valid properties '${Reflect.ownKeys(this.meta.types).join("', '")}'
             Instead got '${Reflect.ownKeys(props).join("', '")}'
         `)
       }
@@ -369,25 +362,21 @@ export default class Model extends Base {
 
   static updateSome(where: props, props: props): Promise<number> {
     for (const prop of Reflect.ownKeys(where)) {
-      if (!Reflect.ownKeys(this.meta.attributes).includes(prop)) {
+      if (!Reflect.ownKeys(this.meta.types).includes(prop)) {
         throw new Error(`
           Invalid key '${prop}' defined on 'where' given to 'Model.updateSome'.
             Included properties must be defined on model class
-            Valid properties '${Reflect.ownKeys(this.meta.attributes).join(
-              "', '"
-            )}'
+            Valid properties '${Reflect.ownKeys(this.meta.types).join("', '")}'
             Instead got '${Reflect.ownKeys(where).join("', '")}'
         `)
       }
     }
     for (const prop of Reflect.ownKeys(props)) {
-      if (!Reflect.ownKeys(this.meta.attributes).includes(prop)) {
+      if (!Reflect.ownKeys(this.meta.types).includes(prop)) {
         throw new Error(`
           Invalid key '${prop}' defined on 'props' given to 'Model.updateSome'.
             Included properties to update must be defined on model class
-            Valid properties '${Reflect.ownKeys(this.meta.attributes).join(
-              "', '"
-            )}'
+            Valid properties '${Reflect.ownKeys(this.meta.types).join("', '")}'
             Instead got '${Reflect.ownKeys(props).join("', '")}'
         `)
       }
@@ -397,13 +386,11 @@ export default class Model extends Base {
 
   static updateOneById(id: number, props: props): Promise<number> {
     for (const prop of Reflect.ownKeys(props)) {
-      if (!Reflect.ownKeys(this.meta.attributes).includes(prop)) {
+      if (!Reflect.ownKeys(this.meta.types).includes(prop)) {
         throw new Error(`
           Invalid key '${prop}' defined on 'props' given to 'Model.updateOneById'.
             Included properties must be defined on model class
-            Valid properties '${Reflect.ownKeys(this.meta.attributes).join(
-              "', '"
-            )}'
+            Valid properties '${Reflect.ownKeys(this.meta.types).join("', '")}'
             Instead got '${Reflect.ownKeys(props).join("', '")}'
         `)
       }
@@ -413,25 +400,21 @@ export default class Model extends Base {
 
   static updateOne(where: props, props: props): Promise<number> {
     for (const prop of Reflect.ownKeys(where)) {
-      if (!Reflect.ownKeys(this.meta.attributes).includes(prop)) {
+      if (!Reflect.ownKeys(this.meta.types).includes(prop)) {
         throw new Error(`
           Invalid key '${prop}' defined on 'where' given to 'Model.updateOne'.
             Included properties must be defined on model class
-            Valid properties '${Reflect.ownKeys(this.meta.attributes).join(
-              "', '"
-            )}'
+            Valid properties '${Reflect.ownKeys(this.meta.types).join("', '")}'
             Instead got '${Reflect.ownKeys(where).join("', '")}'
         `)
       }
     }
     for (const prop of Reflect.ownKeys(props)) {
-      if (!Reflect.ownKeys(this.meta.attributes).includes(prop)) {
+      if (!Reflect.ownKeys(this.meta.types).includes(prop)) {
         throw new Error(`
           Invalid key '${prop}' defined on 'props' given to 'Model.updateOne'.
             Included properties to update must be defined on model class
-            Valid properties '${Reflect.ownKeys(this.meta.attributes).join(
-              "', '"
-            )}'
+            Valid properties '${Reflect.ownKeys(this.meta.types).join("', '")}'
             Instead got '${Reflect.ownKeys(props).join("', '")}'
         `)
       }
@@ -496,9 +479,9 @@ export default class Model extends Base {
 
   toJSON(this: { [key: string]: any }): { [key: string]: any } {
     const json: { [key: string]: any } = {}
-    const { attributes } = this.ctor.meta
-    for (const [property] of Object.entries(attributes)) {
-      if (attributes[property] && this[property]) {
+    const { types } = this.ctor.meta
+    for (const [property] of Object.entries(types)) {
+      if (types[property] && this[property]) {
         json[property] = this[property]
       }
     }
@@ -571,10 +554,14 @@ export type relationship = {
 }
 
 export type modelMeta = {
-  attributeDefinition: {
-    [attrName: string]: { type: string; default?: string }
+  attributes: {
+    [attrName: string]: {
+      type: string
+      default?: string
+      [key: string]: any
+    }
   }
-  attributes: { [attrName: string]: Type }
+  types: { [attrName: string]: Type }
   relationships: { [relName: string]: relationship }
 }
 

@@ -1,4 +1,4 @@
-import Type from '../classes/type'
+import Type, { options } from '../classes/type'
 
 /**
  * Basic string `Type` for use with model type decorator to define model
@@ -12,15 +12,15 @@ import Type from '../classes/type'
  * ```
  */
 export default class StringType extends Type {
-  modify(value: string | number): string {
+  modify(value: string | number, options: options): string {
     return String(value)
   }
 
-  store(value: string): string {
+  store(value: string, options: options): string {
     return value
   }
 
-  retrieve(value: string): string {
+  retrieve(value: string, options: options): string {
     return value
   }
 }

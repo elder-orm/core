@@ -1,4 +1,4 @@
-import Type from '../classes/type'
+import Type, { options } from '../classes/type'
 import TypeError from '../classes/errors/type'
 
 export default class BooleanType extends Type {
@@ -12,7 +12,7 @@ export default class BooleanType extends Type {
     `)
   }
 
-  modify(value: boolean | number | string): boolean {
+  modify(value: boolean | number | string, options: options): boolean {
     if (['true', 'TRUE', 'T', 't', '1', 1, true].includes(value)) {
       return true
     } else if (['false', 'FALSE', 'F', 'f', '0', 0, false].includes(value)) {
@@ -22,11 +22,11 @@ export default class BooleanType extends Type {
     return false
   }
 
-  store(value: boolean): string {
+  store(value: boolean, options: options): string {
     return value === true ? 'TRUE' : 'FALSE'
   }
 
-  retrieve(value: string | number | boolean): boolean {
+  retrieve(value: string | number | boolean, options: options): boolean {
     if (['true', 'TRUE', 'T', 't', '1', 1, true].includes(value)) {
       return true
     } else if (['false', 'FALSE', 'F', 'f', '0', 0, false].includes(value)) {
