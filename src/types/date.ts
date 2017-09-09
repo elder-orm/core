@@ -1,8 +1,8 @@
-import Type from '../classes/type'
+import Type, { options } from '../classes/type'
 import TypeError from '../classes/errors/type'
 
 export default class DateType extends Type {
-  modify(value: Date | string): Date {
+  modify(value: Date | string, options: options): Date {
     if (typeof value === 'string') {
       const date: Date = new Date(value)
       if (date.toString() === 'Invalid Date') {
@@ -17,11 +17,11 @@ export default class DateType extends Type {
     return value
   }
 
-  store(value: Date): string {
+  store(value: Date, options: options): string {
     return value.toISOString()
   }
 
-  retrieve(value: string): Date {
+  retrieve(value: string, options: options): Date {
     return new Date(value)
   }
 }

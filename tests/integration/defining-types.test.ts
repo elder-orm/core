@@ -90,4 +90,86 @@ describe('Defining types', () => {
     expect(cat.name).toBe('~~paws~~(Colonel Paws)~~paws~~')
     return orm.destroy()
   })
+
+  test('Custom type with access hook taking options', async () => {
+    class CatModel extends Model {
+      @type('cat-name', { title: 'Colonel' })
+      name: string
+    }
+    const CatNameType = class extends StringType {
+      access(value: string, options: any): string {
+        return `${options.title} ${value}`
+      }
+    }
+    const orm = Elder.create({
+      config,
+      models: { cat: CatModel },
+      types: { 'cat-name': CatNameType }
+    })
+    const cat = CatModel.create({ name: 'Paws' })
+    expect(cat.name).toBe('Colonel Paws')
+    return orm.destroy()
+  })
+
+  test('Custom type with modify hook taking options', async () => {
+    class CatModel extends Model {
+      @type('cat-name', { title: 'Colonel' })
+      name: string
+    }
+    const CatNameType = class extends StringType {
+      modify(value: string | number, options: any): string {
+        return `${options.title} ${value}`
+      }
+    }
+    const orm = Elder.create({
+      config,
+      models: { cat: CatModel },
+      types: { 'cat-name': CatNameType }
+    })
+    const cat = CatModel.create()
+    cat.name = 'Paws'
+    expect(cat.name).toBe('Colonel Paws')
+    return orm.destroy()
+  })
+
+  test('Custom type with retrieve hook with options', async () => {
+    class CatModel extends Model {
+      @type('cat-name', { title: 'Colonel' })
+      name: string
+    }
+    const CatNameType = class extends StringType {
+      retrieve(value: string, options: any): string {
+        return `${options.title} ${value}`
+      }
+    }
+    const orm = Elder.create({
+      config,
+      models: { cat: CatModel },
+      types: { 'cat-name': CatNameType }
+    })
+    const cats = await CatModel.all()
+    expect(cats[0].name).toBe('Colonel Fluffy')
+    return orm.destroy()
+  })
+
+  test('Custom type with store hook with options', async () => {
+    class CatModel extends Model {
+      @type('cat-name', { title: 'Colonel' })
+      name: string
+    }
+    const CatNameType = class extends StringType {
+      store(value: string, options: any): string {
+        return `${options.title} ${value}`
+      }
+    }
+    const orm = Elder.create({
+      config,
+      models: { cat: CatModel },
+      types: { 'cat-name': CatNameType }
+    })
+    const cat = CatModel.create({ name: 'James McTail' })
+    await cat.save()
+    expect(cat.name).toBe('Colonel James McTail')
+    return orm.destroy()
+  })
 })

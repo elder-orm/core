@@ -12,28 +12,28 @@ describe('String type', () => {
   test('modify() given a string', () => {
     const stringType = StringType.create()
     const value = 'a string'
-    const result = stringType.modify(value)
+    const result = stringType.modify(value, {})
     expect(result).toBe(value)
   })
 
   test('modify() given a number', () => {
     const stringType = StringType.create()
     const value = 21
-    const result = stringType.modify(value)
+    const result = stringType.modify(value, {})
     expect(result).toBe('21')
   })
 
   test('store()', () => {
     const stringType = StringType.create()
     const value = 'a string'
-    const result = stringType.store(value)
+    const result = stringType.store(value, {})
     expect(result).toBe(value)
   })
 
   test('retrieve()', () => {
     const stringType = StringType.create()
     const value = 'a string'
-    const result = stringType.retrieve(value)
+    const result = stringType.retrieve(value, {})
     expect(result).toBe(value)
   })
 })

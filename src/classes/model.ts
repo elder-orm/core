@@ -38,17 +38,18 @@ export default class Model extends Base {
 
   static runTypeHook(key: any, value: any, hook: typeHook): any {
     const type: Type = this.meta.attributes[key]
+    const options = this.meta.attributeDefinition[key]
     switch (hook) {
       case 'access':
-        return type.access(value)
+        return type.access(value, options)
       case 'modify':
-        return type.modify(value)
+        return type.modify(value, options)
       case 'retrieve':
-        return type.retrieve(value)
+        return type.retrieve(value, options)
       case 'store':
-        return type.store(value)
+        return type.store(value, options)
       case 'validate':
-        return type.validate(value)
+        return type.validate(value, options)
     }
   }
 
@@ -572,7 +573,11 @@ export type relationship = {
 
 export type modelMeta = {
   attributeDefinition: {
-    [attrName: string]: { type: string; default?: string }
+    [attrName: string]: {
+      type: string
+      default?: string
+      [key: string]: any
+    }
   }
   attributes: { [attrName: string]: Type }
   relationships: { [relName: string]: relationship }
