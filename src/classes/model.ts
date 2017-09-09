@@ -12,7 +12,7 @@ export default class Model extends Base {
   static adapter: Adapter
   static serializers: serializers
   static meta: modelMeta = {
-    attributeDefinition: {},
+    attributes: {},
     types: {},
     relationships: {}
   }
@@ -38,7 +38,7 @@ export default class Model extends Base {
 
   static runTypeHook(key: any, value: any, hook: typeHook): any {
     const type: Type = this.meta.types[key]
-    const options = this.meta.attributeDefinition[key]
+    const options = this.meta.attributes[key]
     switch (hook) {
       case 'access':
         return type.access(value, options)
@@ -86,8 +86,8 @@ export default class Model extends Base {
 
   static attachTypes(types: { [name: string]: Type }) {
     const Ctor = this
-    Object.keys(this.meta.attributeDefinition).forEach(attr => {
-      let typeName = this.meta.attributeDefinition[attr].type
+    Object.keys(this.meta.attributes).forEach(attr => {
+      let typeName = this.meta.attributes[attr].type
       if (types[`${this.modelName}:${typeName}`]) {
         typeName = `${this.modelName}:${typeName}`
       }
@@ -145,8 +145,8 @@ export default class Model extends Base {
     serializers: { default: Serializer; [name: string]: Serializer }
   ) {
     let needsIdDefinition = false
-    if (!this.meta.attributeDefinition[this.idField]) {
-      this.meta.attributeDefinition[this.idField] = { type: 'number' }
+    if (!this.meta.attributes[this.idField]) {
+      this.meta.attributes[this.idField] = { type: 'number' }
       needsIdDefinition = true
     }
     this.attachAdapters(adapters)
@@ -271,7 +271,7 @@ export default class Model extends Base {
       }
     }
     const defaults: props = {}
-    for (const [key, value] of Object.entries(this.meta.attributeDefinition)) {
+    for (const [key, value] of Object.entries(this.meta.attributes)) {
       if (value && value.default) {
         defaults[key] = value.default
       }
@@ -300,9 +300,7 @@ export default class Model extends Base {
       this,
       records.map(record => {
         const defaults: props = {}
-        for (const [key, value] of Object.entries(
-          this.meta.attributeDefinition
-        )) {
+        for (const [key, value] of Object.entries(this.meta.attributes)) {
           if (value && value.default) {
             defaults[key] = value.default
           }
@@ -556,7 +554,7 @@ export type relationship = {
 }
 
 export type modelMeta = {
-  attributeDefinition: {
+  attributes: {
     [attrName: string]: {
       type: string
       default?: string

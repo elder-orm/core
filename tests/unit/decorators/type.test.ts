@@ -10,14 +10,14 @@ describe('@type() decorator', () => {
       @type('boolean') bol: string
     }
 
-    expect(Cat.meta.attributeDefinition).toEqual({
+    expect(Cat.meta.attributes).toEqual({
       str: { type: 'string' },
       num: { type: 'number' },
       dat: { type: 'date' },
       bol: { type: 'boolean' }
     })
 
-    expect(Model.meta.attributeDefinition).toEqual({})
+    expect(Model.meta.attributes).toEqual({})
   })
 
   test('errors if default value for property is used', () => {
@@ -42,13 +42,24 @@ describe('@type() decorator', () => {
       bol: string
     }
 
-    expect(Cat.meta.attributeDefinition).toEqual({
+    expect(Cat.meta.attributes).toEqual({
       str: { type: 'string', foo: 'bar' },
       num: { type: 'number', foo: 'bar' },
       dat: { type: 'date', foo: 'bar' },
       bol: { type: 'boolean', foo: 'bar' }
     })
 
-    expect(Model.meta.attributeDefinition).toEqual({})
+    expect(Model.meta.attributes).toEqual({})
+  })
+
+  test('decorator throws if illegal key type is used', () => {
+    const expression = () => {
+      class Cat extends Model {
+        @type('string', { type: 'bar' })
+        str: string
+      }
+    }
+
+    expect(expression).toThrow()
   })
 })
