@@ -22,7 +22,7 @@ export default function type(
 
     const meta = {
       attributeDefinition: {},
-      attributes: {},
+      types: {},
       relationships: {}
     }
 

@@ -34,7 +34,7 @@ function sanitize(
   props: { [key: string]: any }
 ): { [key: string]: any } {
   const validPropKeys: string[] = Object.keys(props).filter(prop =>
-    Reflect.ownKeys(Ctor.meta.attributes).includes(prop)
+    Reflect.ownKeys(Ctor.meta.types).includes(prop)
   )
   const validProps: { [key: string]: any } = {}
   for (let prop of validPropKeys) {
@@ -108,7 +108,7 @@ export default class Adapter {
   }
 
   fieldsForModel(Ctor: typeof Model) {
-    return Object.keys(Ctor.meta.attributes)
+    return Object.keys(Ctor.meta.types)
   }
 
   databaseFieldsForModel(Ctor: typeof Model) {
@@ -163,9 +163,9 @@ export default class Adapter {
   //       if (!RelatedModel) return
   //       let query = this.knex(RelatedModel.tableName)
 
-  //       let attributes = this.columnsForModel(Model)
-  //       if (fieldOptions) attributes = this.limitFieldSet(RelatedModel, attributes, fieldOptions)
-  //       query = query.column(attributes)
+  //       let types = this.columnsForModel(Model)
+  //       if (fieldOptions) types = this.limitFieldSet(RelatedModel, types, fieldOptions)
+  //       query = query.column(types)
 
   //       let columns = []
   //       if (fieldOptions && fieldOptions[RelatedModel.type]) {
