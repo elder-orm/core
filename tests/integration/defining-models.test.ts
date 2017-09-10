@@ -107,4 +107,20 @@ describe('Defining models', () => {
     expect(cat.id).toBe(2)
     return orm.destroy()
   })
+
+  test('Accessing models', async () => {
+    class CatModel extends Model {
+      @type('number') id: number
+      @type('string') name: string
+    }
+    class CatName extends StringType {}
+    const orm = Elder.create({
+      config,
+      models: { cat: CatModel }
+    })
+    const { CatModel: Cat } = orm.models
+    expect(Cat.name).toBe('CatModel')
+    expect(Cat.modelName).toBe('cat')
+    return orm.destroy()
+  })
 })

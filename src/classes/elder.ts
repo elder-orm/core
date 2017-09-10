@@ -221,6 +221,11 @@ export default class Elder extends Base {
     // setup models by calling each models setup method passing initialized
     // serializers, adapters and types
     this.models = options.models || {}
+    // duplicate all model entries indexed by class name to allow destructuring
+    // of models either by all lower case Model.modelName or by Model.name
+    for (const Model of Object.values(this.models)) {
+      this.models[Model.name] = Model
+    }
     setupModels(this.models, this.types, this.adapters, this.serializers)
   }
 
