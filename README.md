@@ -271,7 +271,7 @@ Example
 ```js
 // my-project/index.ts
 import orm from './orm'
-const Cat = orm.models.cat
+const { Cat } = orm.models
 
 /* Cat.all().then(...) */
 ```

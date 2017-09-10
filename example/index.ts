@@ -1,5 +1,5 @@
 import orm from './orm'
-const { cat: Cat } = orm.models
+const { Cat } = orm.models
 
 async function main() {
   const cats = await Cat.all()
