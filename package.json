@@ -30,7 +30,7 @@
     "@types/inflection": "^1.5.28",
     "@types/jest": "^20.0.6",
     "@types/knex": "^0.0.61",
-    "@types/node": "^8.0.19",
+    "@types/node": "^12.12.12",
     "commitizen": "^2.9.6",
     "cz-conventional-changelog": "^2.0.0",
     "http-server": "^0.10.0",
